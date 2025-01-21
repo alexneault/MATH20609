@@ -6,7 +6,7 @@ https://git-scm.com/book/en/v2/Getting-Started-Installing-Git /
 
 **git clone https://github.com/alexneault/MATH20609.git**
 
-## Dependances 
+## Dépendance 
 pip install -r requirements.txt -> pour les dependencies
 ## Run le programme
 Si vous voulez run windows: **python .\root_functions.py .\Devoir1_Entame.xlsx** \
