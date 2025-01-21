@@ -1,8 +1,8 @@
 # MATH20609
 
 ## Clone le repo sur ton ordi
-Download git pour windows/unix/mac : /
-https://git-scm.com/book/en/v2/Getting-Started-Installing-Git /
+Download git pour windows/unix/mac :  
+https://git-scm.com/book/en/v2/Getting-Started-Installing-Git  
 
 **git clone https://github.com/alexneault/MATH20609.git**
 
