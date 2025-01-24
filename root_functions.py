@@ -4,6 +4,7 @@ import sys
 import pandas as pd
 import numpy as np
 import unicodedata
+import xlwings as xw
 from numpy import exp
 
 # Ex: quasi-Newton -> quasinewton 
@@ -75,6 +76,39 @@ def muller(inputs):
 def pointfixe(inputs):
     None
 
+def copy_inputs(file_name):
+    # Ouvrir le fichier Excel
+    wb = xw.Book(file_name)
+    sheet = wb.sheets["Inputs"]
+
+    # Lire une cellule ou une plage
+    fonctions_col = sheet.range("A3:A100").value  # Lire colonne A
+    binaire_col = sheet.range("B3:B100").value  # Lire colonne B
+
+    functions = zip(fonctions_col, binaire_col)  # créer une liste avec les fonctions
+
+    functions_filtered = [item for item in functions if item != (None, None)]  # retirer les valeurs vides
+
+    # Insérer les inputs originaux dans la feuille output de notre excel
+    nom_onglet = "Output"
+    nom_fichier = file_name
+
+    try:
+        ws = wb.sheets.add(name=nom_onglet)
+    except ValueError:
+        ws = wb.sheets[nom_onglet]
+
+    for i, (nom_fonction, variable_binaire) in enumerate(functions_filtered, start=2):  # Commencer à la ligne 1
+        ws.range(f"A{i}").value = nom_fonction
+        ws.range(f"B{i}").value = variable_binaire
+
+    ws.range("A1").value = "Output"  # première valeur dans la case A1
+
+    wb.save()
+
+    print(f"Les données ont été ajoutées à l'onglet '{nom_onglet}' du fichier '{nom_fichier}'.")
+
+
 # pip install -r requirements.txt -> pour les dependencies
 # Si vous voulez run ex: python .\root_functions.py .\Devoir1_Entame.xlsx
 if __name__ == "__main__":
@@ -84,8 +118,7 @@ if __name__ == "__main__":
 
     file_name = sys.argv[1]
     inputs = xlsx_to_dict(file_name)
-
+    copy_inputs("Devoir1_Entame.xlsm")
     # inputs.update({'x': 1}) # Only used for Test
     # print(eval_with_imports(inputs['fonction'], inputs)) # Test
-
     run_functions(inputs)
