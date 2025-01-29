@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
+from math import *
 import sys
 import pandas as pd
 import numpy as np
 import unicodedata
 import xlwings as xw
-from numpy import exp
+
+# Globals
+nb_iterations = 10
 
 # Ex: quasi-Newton -> quasinewton 
 # Ex: Sécante -> secante 
@@ -13,100 +16,87 @@ def remove_accent_and_lowercase(input_string):
     nfkd_form = unicodedata.normalize('NFKD', input_string)
     return ''.join([char.lower() for char in nfkd_form if unicodedata.category(char) != 'Mn' and char.isalpha()])
 
-# Excel -> dict/map
-def xlsx_to_dict(file_name):
-    result = {}
-    try:
-        df = pd.read_excel(file_name)
+def ensure_equals_prefix(expression) -> str:
+    if not expression.startswith('='):
+        expression = '=' + expression
+    return expression
 
-        if df.shape[1] >= 2:
-            for _, row in df.iterrows():
-                key = remove_accent_and_lowercase(str(row.iloc[0]))
-                value = row.iloc[1]
-                result[key] = value
-        else:
-            print("The file does not have enough columns.")
-            return {}
+def run_functions(inputs: dict, ws: xw.Sheet, min, max):
+    if inputs['bissection'][0] == 1: bissection(inputs, ws, min, max)
+    if inputs['secante'][0] == 1: secante(inputs, ws, min, max)
+    if inputs['newton'][0] == 1: newton(inputs, ws, min, max)
+    if inputs['quasinewton'][0] == 1: quasi_newton(inputs, ws, min, max)
+    if inputs['muller'][0] == 1: muller(inputs, ws, min, max)
+    if inputs['pointfixe'][0] == 1: pointfixe(inputs, ws, min, max)
+    min_max(inputs, ws, min, max)
 
-    except FileNotFoundError:
-        print(f"The file {file_name} does not exist.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
 
-    return result
+def min_max (inputs: dict, ws: xw.Sheet, min, max):
+    col_min = inputs['min'][2]
+    col_max = inputs['max'][2]
+    func = inputs['fonction'][0]
 
-# Ajouter les imports qui nous faut pour eval('fonction')
-def eval_with_imports(expression, custom_globals):
-    allowed_globals = {
-        'import': __import__,
-        'math': __import__('math'),
-        'np': __import__('numpy'),
-        'exp': __import__('numpy').exp
-    }
+    min_context = {"x": inputs['min'][0]}
+    min_result = eval(func, globals(), min_context)
 
-    if custom_globals:
-        allowed_globals.update(custom_globals)
+    max_context = {"x": inputs['max'][0]}
+    max_result = eval(func, globals(), max_context)
 
-    return eval(expression, allowed_globals)
+    ws.range(f"C{col_min}").value = min_result
+    ws.range(f"C{col_max}").value = max_result
 
-# Check if functions are enabled (== 1) and run them
-def run_functions(inputs: dict):
-    if inputs['bissection'] == 1: bissection(inputs)
-    if inputs['secante'] == 1: secante(inputs)
-    if inputs['newton'] == 1: newton(inputs)
-    if inputs['quasinewton'] == 1: quasi_newton(inputs)
-    if inputs['muller'] == 1: muller(inputs)
-    if inputs['pointfixe'] == 1: pointfixe(inputs)
 
-def bissection(inputs):
+def bissection(inputs: dict, ws: xw.Sheet, min, max):
     None
 
-def secante(inputs):
+def secante(inputs: dict, ws: xw.Sheet, min, max):
     None
 
-def newton(inputs):
+def newton(inputs: dict, ws: xw.Sheet, min, max):
     None
 
-def quasi_newton(inputs):
+def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
     None
 
-def muller(inputs):
+def muller(inputs: dict, ws: xw.Sheet, min, max):
     None
 
-def pointfixe(inputs):
+def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
     None
 
-def copy_inputs(file_name):
+def handle_inputs(file_name: str):
+    output = "Output"
+    inputs = "Inputs"
+    results = "Results"
+
     # Ouvrir le fichier Excel
     wb = xw.Book(file_name)
     sheet = wb.sheets["Inputs"]
-
-    # Lire une cellule ou une plage
-    fonctions_col = sheet.range("A3:A100").value  # Lire colonne A
-    binaire_col = sheet.range("B3:B100").value  # Lire colonne B
-
-    functions = zip(fonctions_col, binaire_col)  # créer une liste avec les fonctions
-
+    input_data = {}
+    functions = zip(sheet.range("A3:A100").value, sheet.range("B3:B100").value)
     functions_filtered = [item for item in functions if item != (None, None)]  # retirer les valeurs vides
 
     # Insérer les inputs originaux dans la feuille output de notre excel
-    nom_onglet = "Output"
-    nom_fichier = file_name
-
     try:
-        ws = wb.sheets.add(name=nom_onglet)
+        ws = wb.sheets.add(name=output, after=inputs)
     except ValueError:
-        ws = wb.sheets[nom_onglet]
-
-    for i, (nom_fonction, variable_binaire) in enumerate(functions_filtered, start=2):  # Commencer à la ligne 1
+        ws = wb.sheets[output]
+    
+    for i, (nom_fonction, value) in enumerate(functions_filtered, start=2):  # Commencer à la ligne 1
         ws.range(f"A{i}").value = nom_fonction
-        ws.range(f"B{i}").value = variable_binaire
+        ws.range(f"B{i}").value = value
+        input_data[remove_accent_and_lowercase(ws.range(f"A{i}").value)] = (value, nom_fonction, i)
 
-    ws.range("A1").value = "Output"  # première valeur dans la case A1
+    x_min = input_data['min']
+    x_max = input_data['max'] 
+    run_functions(input_data, ws, x_min, x_max)
 
+    ws.range("A1").value = output
+    ws.range("C1").value = results
+    
     wb.save()
 
-    print(f"Les données ont été ajoutées à l'onglet '{nom_onglet}' du fichier '{nom_fichier}'.")
+    print(f"Les données ont été ajoutées à l'onglet '{output}' du fichier '{file_name}'.")
 
 
 # pip install -r requirements.txt -> pour les dependencies
@@ -115,10 +105,4 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage:\nunix: python root_functions.py <csv_file_name>\nwin: python .\\root_functions.py .\\<csv_file_name>")
         sys.exit(1)
-
-    file_name = sys.argv[1]
-    inputs = xlsx_to_dict(file_name)
-    copy_inputs("Devoir1_Entame.xlsm")
-    # inputs.update({'x': 1}) # Only used for Test
-    # print(eval_with_imports(inputs['fonction'], inputs)) # Test
-    run_functions(inputs)
+    handle_inputs(sys.argv[1])
