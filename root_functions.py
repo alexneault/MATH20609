@@ -63,8 +63,8 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
             x1 = inputs['max'][0]
             x2 = inputs['min'][0]
 
-        print(x1_result)
-        print(x2_result)
+        bissection_list = []
+
         if x1_result * x2_result > 0:
             bissection_result = "Aucun zero sur cette section" # Cette section ne marche pas vraiment, si les deux points sont du même signe, aucune réponse n'est retournée
         else:
@@ -73,17 +73,16 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
                 x3 = (x1 + x2)/2
                 x3_context = {"x": x3}
                 x3_result = eval(func, globals(), x3_context)
-                print(x3, x3_result)
                 if x3_result > 0:
                     x2 = x3
                 else:
                     x1 = x3
+                bissection_list.append(x3)
                 bissection_result = x3
                 precision_result = x2-x1
     except OverflowError:
         bissection_result = "Erreur, résultat des bornes trop élevé"
 
-    print(bissection_result)
     ws.range(f"C{col_bissection}").value = bissection_result
 
 
