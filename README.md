@@ -10,5 +10,5 @@ Run cette commande dans un terminal dans le dossier que tu veux mettre le code:
 ## Dépendances
 `pip install -r requirements.txt -> pour les dependencies`
 ## Run le programme
-Si vous voulez run windows: `python .\root_functions.py .\Devoir1_Entame.xlsx` \
+Si vous voulez run windows: `python .\root_functions.py .\Devoir1_Entame.xlsm` \
 Si vous voulez run unix/mac: `python root_functions.py Devoir1_Entame.xlsx`
