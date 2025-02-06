@@ -74,7 +74,43 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
     populate_graph_data(inputs, "bissection", approxs, bissection_result)
 
 def secante(inputs: dict, ws: xw.Sheet, min, max):
-   None
+#work in progress, faut je l'intègre dans notre gros script et rajouter safeguards.
+    # values
+    try:
+        approxs = {}
+        col_secante = inputs["secante"][2]
+        func = inputs["function"][0]
+        precision_required = inputs['precision'][0]
+
+        x1 = inputs['min'][0]
+        x2 = inputs['max'][0]
+
+        x1_context = {"x": x1}
+        x1_result = eval(func, globals(), x1_context)
+        x2_context = {"x": x2}
+        x2_result = eval(func, globals(), x2_context)
+        approxs[x1] = x1_result
+        approxs[x2] = x2_result
+        
+        if x1_result > x2_result:
+            x1 = inputs['max'][0]
+            x2 = inputs['min'][0]
+
+        if x1_result * x2_result > 0:
+            secante_result = "Aucun zero sur cette section"
+        else:
+            secante_list = []
+            precision_result=abs(x2-x1)
+
+            while abs(precision_result) > abs(req_precision):
+                fx1 = eval(func, globals(), {"x": x1})
+                fx2 = eval(func, globals(), {"x": x2})
+
+                x3 = x2-(fx2/((fx2-fx1)/(x2-x1)))
+                x1, x2 = x2, x3
+                precision_result = abs(x2-x1)
+                secante_list.append(x3)
+print(secante_list)
 
 def newton(inputs: dict, ws: xw.Sheet, min, max):
     None
