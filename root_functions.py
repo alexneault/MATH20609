@@ -98,10 +98,6 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
             while abs(precision_result) > abs(precision_required):
                 fx1 = eval(func, globals(), {"x": x1})
                 fx2 = eval(func, globals(), {"x": x2})
-
-                if fx2 - fx1 ==0:
-                    secante_result = "Erreur : Division par Zero"
-                    break
                 
                 x3 = x2-(fx2/((fx2-fx1)/(x2-x1)))
                 x3_context = {"x": x3}
