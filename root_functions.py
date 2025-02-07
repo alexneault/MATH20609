@@ -110,7 +110,7 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
                 x1, x2 = x2, x3
                 precision_result = abs(x2-x1)
                 secante_list.append(x3)
-print(secante_list)
+                secante_result= x3
 
 def newton(inputs: dict, ws: xw.Sheet, min, max):
     None
