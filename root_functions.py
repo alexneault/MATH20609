@@ -92,20 +92,17 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
         approxs[x1] = x1_result
         approxs[x2] = x2_result
         
-        if x1_result > x2_result:
-            x1 = inputs['max'][0]
-            x2 = inputs['min'][0]
-
-        if x1_result * x2_result > 0:
-            secante_result = "Aucun zero sur cette section"
-        else:
-            secante_list = []
-            precision_result=abs(x2-x1)
-
+        secante_list = []
+        precision_result=abs(x2-x1)
+        
             while abs(precision_result) > abs(req_precision):
                 fx1 = eval(func, globals(), {"x": x1})
                 fx2 = eval(func, globals(), {"x": x2})
 
+                if fx2 - fx1 ==0:
+                    secante_result = "Erreur : Division par Zero"
+                    break
+                
                 x3 = x2-(fx2/((fx2-fx1)/(x2-x1)))
                 x1, x2 = x2, x3
                 precision_result = abs(x2-x1)
