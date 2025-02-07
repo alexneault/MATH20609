@@ -95,7 +95,7 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
         secante_list = []
         precision_result=abs(x2-x1)
         
-            while abs(precision_result) > abs(req_precision):
+            while abs(precision_result) > abs(precision_required):
                 fx1 = eval(func, globals(), {"x": x1})
                 fx2 = eval(func, globals(), {"x": x2})
 
@@ -104,6 +104,9 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
                     break
                 
                 x3 = x2-(fx2/((fx2-fx1)/(x2-x1)))
+                x3_context = {"x": x3}
+                x3_result = eval(func, globals(), x3_context)
+                approxs[x3] = x3_result
                 x1, x2 = x2, x3
                 precision_result = abs(x2-x1)
                 secante_list.append(x3)
