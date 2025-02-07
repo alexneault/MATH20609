@@ -112,6 +112,9 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
                 secante_list.append(x3)
                 secante_result= x3
 
+    ws.range(f"C{col_secante}").value = secante_result
+    populate_graph_data(inputs, "secante", approxs, secante_result)
+
 def newton(inputs: dict, ws: xw.Sheet, min, max):
     None
 
