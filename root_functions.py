@@ -18,10 +18,10 @@ import xlwings as xw
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import sympy as sp
-import imageio
 from PIL import Image, ImageSequence
-
-
+from openpyxl import Workbook
+from openpyxl.drawing.image import Image
+from openpyxl.reader.excel import load_workbook
 
 # Globals
 nb_iterations = 10
@@ -305,7 +305,13 @@ def handle_inputs(file_name: str):
             add_approx_plot(axes, nb_of_plot)
         ws.pictures.add(fig, name='Graphiques', update=True, left=ws.range('E8').left, top=ws.range('E8').top)
 
-    merge_gifs_side_by_side('bissection animation.gif','pointfixe animation.gif', 'merged.gif')
+    #merge_gifs_side_by_side('bissection animation.gif','pointfixe animation.gif', 'merged.gif')
+    #add the animated graph je vais creer une loop pour le faire pour chacun des graphs plus tard.
+    if input_data['animationordinateur'][0] == 1:
+        outputsheet = wb.sheets['Output']
+        outputsheet.pictures.add('bissection animation.gif', top=outputsheet.range("S5").top, left=sheet.range("S5").left)
+
+
 
     print(f"Les données ont été ajoutées à l'onglet '{output}' du fichier '{file_name}'.")
     #print(input_data)
