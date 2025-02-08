@@ -148,47 +148,45 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
 
 def secante(inputs: dict, ws: xw.Sheet, min, max):
     None
-# #work in progress, faut je l'intègre dans notre gros script et rajouter safeguards.
-#     # values
-#     try:
-#         approxs = {}
-#         col_secante = inputs["secante"][2]
-#         func = inputs["function"][0]
-#         precision_required = inputs['precision'][0]
-#
-#         x1 = inputs['min'][0]
-#         x2 = inputs['max'][0]
-#
-#         x1_context = {"x": x1}
-#         x1_result = eval(func, globals(), x1_context)
-#         x2_context = {"x": x2}
-#         x2_result = eval(func, globals(), x2_context)
-#         approxs[x1] = x1_result
-#         approxs[x2] = x2_result
-#
-#         secante_list = []
-#         precision_result=abs(x2-x1)
-#
-#         while abs(precision_result) > abs(precision_required):
-#             fx1 = eval(func, globals(), {"x": x1})
-#             fx2 = eval(func, globals(), {"x": x2})
-#
-#             if fx2 - fx1 ==0:
-#                 secante_result = "Erreur : Division par Zero"
-#                 break
-#
-#             x3 = x2-(fx2/((fx2-fx1)/(x2-x1)))
-#             x3_context = {"x": x3}
-#             x3_result = eval(func, globals(), x3_context)
-#             approxs[x3] = x3_result
-#             x1, x2 = x2, x3
-#             precision_result = abs(x2-x1)
-#             secante_list.append(x3)
-#             secante_result= x3
-#     finally:
-#         print(secante_list)
-#         #ws.range(f"C{col_secante}").value = secante_result
-#         #populate_graph_data(inputs, "secante", approxs, secante_result)
+#work in progress, faut je l'intègre dans notre gros script et rajouter safeguards.
+     # values
+    secante_list = []
+    approxs = {}
+    col_secante = inputs['secante'][2]
+    func = inputs['fonction'][0]
+    precision_required = inputs['precision'][0]
+
+    x1 = inputs['min'][0]
+    x2 = inputs['max'][0]
+
+    x1_context = {"x": x1}
+    x1_result = eval(func, globals(), x1_context)
+    x2_context = {"x": x2}
+    x2_result = eval(func, globals(), x2_context)
+    approxs[x1] = x1_result
+    approxs[x2] = x2_result
+
+    precision_result=abs(x2-x1)
+
+    while abs(precision_result) > abs(precision_required):
+        fx1 = eval(func, globals(), {"x": x1})
+        fx2 = eval(func, globals(), {"x": x2})
+
+        if fx2 - fx1 ==0:
+            secante_result = "Erreur : Division par Zero"
+            break
+
+        x3 = x2-(fx2/((fx2-fx1)/(x2-x1)))
+        x3_context = {"x": x3}
+        x3_result = eval(func, globals(), x3_context)
+        approxs[x3] = x3_result
+        x1, x2 = x2, x3
+        precision_result = abs(x2-x1)
+        secante_list.append(x3)
+        secante_result= x3
+
+    ws.range(f"C{col_secante}").value = secante_result
+    populate_graph_data(inputs, "secante", approxs, secante_result)
 
 def newton(inputs: dict, ws: xw.Sheet, min, max):
     None
