@@ -18,6 +18,10 @@ import xlwings as xw
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import sympy as sp
+import imageio
+from PIL import Image, ImageSequence
+
+
 
 # Globals
 nb_iterations = 10
@@ -40,12 +44,14 @@ def run_functions(inputs: dict, ws: xw.Sheet, min, max):
     if inputs['muller'][0] == 1: muller(inputs, ws, min, max)
     if inputs['pointfixe'][0] == 1: pointfixe(inputs, ws, min, max)
 
+
+
 def add_animated_graph (approximations, inputs, func, name):
     #creates an animated graph
     values = list(approximations.values()) #x values of the function
     keys = list(approximations.keys()) #y values of the function
     fig, ax = plt.subplots() #initiate graph process
-    x = np.linspace(inputs['min'][0],inputs['max'][0],5000) #graph the function through 100 points between max and min
+    x = np.linspace(inputs['min'][0],inputs['max'][0],1000) #graph the function through 1000 points between max and min
     y = [eval(func, globals(), {'x':i}) for i in x]
     plt.plot(x, y, label=f"f(x) = {func}", color="blue")
     colors = np.linspace(0, 1, len(approximations.keys()))
@@ -55,11 +61,37 @@ def add_animated_graph (approximations, inputs, func, name):
         scatter.set_offsets(np.c_[keys[:frame + 1], values[:frame + 1]])
         scatter.set_array(colors[:frame + 1])
         return scatter, red_point
-    anim = FuncAnimation(fig, update, frames=len(keys)+10, interval=5000/len(keys), blit=True) #generate the gif
+
+    anim = FuncAnimation(fig, update, frames=len(keys) + 10, interval=5000 / len(keys), blit=True)  # generate the gif
     plt.legend()
     plt.colorbar(scatter)
     anim.save(f'{name} animation.gif', writer='pillow', fps=10) # save the gif in the folder
 
+def merge_gifs_side_by_side(gif1_path, gif2_path, output_path):
+    # Load both GIFs
+    gif1 = Image.open(gif1_path)
+    gif2 = Image.open(gif2_path)
+
+    # Ensure both GIFs have the same number of frames
+    frames1 = [frame.copy() for frame in ImageSequence.Iterator(gif1)]
+    frames2 = [frame.copy() for frame in ImageSequence.Iterator(gif2)]
+
+    # Resize frames to have the same height
+    height = min(frames1[0].height, frames2[0].height)
+    frames1 = [f.resize((int(f.width * height / f.height), height)) for f in frames1]
+    frames2 = [f.resize((int(f.width * height / f.height), height)) for f in frames2]
+
+    # Merge frames side by side
+    merged_frames = []
+    for f1, f2 in zip(frames1, frames2):
+        new_width = f1.width + f2.width
+        new_frame = Image.new("RGBA", (new_width, height))
+        new_frame.paste(f1, (0, 0))
+        new_frame.paste(f2, (f1.width, 0))
+        merged_frames.append(new_frame)
+
+    # Save as a new GIF
+    merged_frames[0].save(output_path, save_all=True, append_images=merged_frames[1:], loop=0, duration=gif1.info['duration'])
 
 
 def bissection(inputs: dict, ws: xw.Sheet, min, max):
@@ -193,8 +225,8 @@ def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
             x0 = bissectrice.subs(x,temp)
         pointfixe_result = x0
         ws.range(f"C{col_pointfixe}").value = pointfixe_result
-        if inputs['animationordinateur'][0] == 1:
-            add_animated_graph(pointfixe_approxs, inputs, func, 'pointfixe')
+        add_animated_graph(pointfixe_approxs, inputs, func, 'pointfixe')
+
     else:
         pointfixe_result = "les valeurs absolues des dérivés au point max et min sont supérieurs ou égales à 1"
         ws.range(f"C{col_pointfixe}").value = pointfixe_result
@@ -272,6 +304,8 @@ def handle_inputs(file_name: str):
         if input_data['graphiqueapproximations'][0] == 1:
             add_approx_plot(axes, nb_of_plot)
         ws.pictures.add(fig, name='Graphiques', update=True, left=ws.range('E8').left, top=ws.range('E8').top)
+
+    merge_gifs_side_by_side('bissection animation.gif','pointfixe animation.gif', 'merged.gif')
 
     print(f"Les données ont été ajoutées à l'onglet '{output}' du fichier '{file_name}'.")
     #print(input_data)
