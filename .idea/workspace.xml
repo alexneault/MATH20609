@@ -162,7 +162,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1737510621538</updated>
-      <workItem from="1739035416421" duration="3711000" />
+      <workItem from="1739035416421" duration="11269000" />
     </task>
     <servers />
   </component>
@@ -170,6 +170,6 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/root_functions_py$python___root_functions_py___Devoir1_Entame_xlsm.coverage" NAME="python .\root_functions.py .\Devoir1_Entame.xlsm Coverage Results" MODIFIED="1739040258161" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/root_functions_py$python___root_functions_py___Devoir1_Entame_xlsm.coverage" NAME="python .\root_functions.py .\Devoir1_Entame.xlsm Coverage Results" MODIFIED="1739050017015" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

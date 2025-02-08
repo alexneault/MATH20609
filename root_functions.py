@@ -18,10 +18,10 @@ import xlwings as xw
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import sympy as sp
+#import imageio
 from PIL import Image, ImageSequence
-from openpyxl import Workbook
-from openpyxl.drawing.image import Image
-from openpyxl.reader.excel import load_workbook
+
+
 
 # Globals
 nb_iterations = 10
@@ -147,7 +147,6 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
         add_animated_graph(bissection_approxs, inputs, func,'bissection')
 
 def secante(inputs: dict, ws: xw.Sheet, min, max):
-    None
 #work in progress, faut je l'intègre dans notre gros script et rajouter safeguards.
      # values
     secante_list = []
@@ -189,7 +188,34 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
     populate_graph_data(inputs, "secante", approxs, secante_result)
 
 def newton(inputs: dict, ws: xw.Sheet, min, max):
-    None
+    approxs = {}
+    col_newton = inputs['newton'][2]
+    func = inputs['fonction'][0]
+    precision_required = inputs['precision'][0]
+
+    x1 = inputs['min'][0]
+    x1_context = {"x": x1}
+    x1_result = eval(func, globals(), x1_context)
+    approxs[x1] = x1_result
+
+    precision = 1
+    newton_list = []
+    x = sp.Symbol("x")
+
+    while precision > precision_required:
+        fx1 = eval(func, globals(), {"x": x1})
+        deriv = sp.diff(func, x)
+        deriv_value = deriv.subs(x, x1)
+        x2 = x1 - (fx1 / deriv_value)
+        fx2 = eval(func, globals(), {"x": x1})
+        x1 = x2
+        precision = abs(fx2)
+        newton_list.append(x2)
+        newton_result = x2
+        print(x2)
+
+    ws.range(f"C{col_newton}").value = newton_result
+    populate_graph_data(inputs, "secante", approxs, newton_result)
 
 def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
     None
@@ -303,13 +329,7 @@ def handle_inputs(file_name: str):
             add_approx_plot(axes, nb_of_plot)
         ws.pictures.add(fig, name='Graphiques', update=True, left=ws.range('E8').left, top=ws.range('E8').top)
 
-    #merge_gifs_side_by_side('bissection animation.gif','pointfixe animation.gif', 'merged.gif')
-    #add the animated graph je vais creer une loop pour le faire pour chacun des graphs plus tard.
-    if input_data['animationordinateur'][0] == 1:
-        outputsheet = wb.sheets['Output']
-        outputsheet.pictures.add('bissection animation.gif', top=outputsheet.range("S5").top, left=sheet.range("S5").left)
-
-
+    merge_gifs_side_by_side('bissection animation.gif','pointfixe animation.gif', 'merged.gif')
 
     print(f"Les données ont été ajoutées à l'onglet '{output}' du fichier '{file_name}'.")
     #print(input_data)
