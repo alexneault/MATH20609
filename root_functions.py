@@ -184,18 +184,15 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
         approxs[x3] = x3_result
         secante_list.append(x3)
         precision_result = abs(x3_result)
-        if np.sign(fx2) == np.sign(x3_result):
-            x2 = x3
-        else:
-            x1 = x3
+        x1, x2 = x2, x3
         secante_result = x3
 
     if secante_result > max or secante_result < min:
         secante_result = "Aucun zero sur cette section"
-    ws.range(f"C{col_secante}").value = secante_result
     if inputs['animationordinateur'][0] == 1:
         add_animated_graph(approxs, inputs, func, 'secante')
         populate_graph_data(inputs, "secante", approxs, secante_result)
+    ws.range(f"C{col_secante}").value = secante_result
 
 def newton(inputs: dict, ws: xw.Sheet, min, max):
     approxs = {}
