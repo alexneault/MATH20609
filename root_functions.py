@@ -150,52 +150,51 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
         add_animated_graph(bissection_approxs, inputs, func,'bissection')
 
 def secante(inputs: dict, ws: xw.Sheet, min, max):
-    try:
-        # values
-        secante_list = []
-        approxs = {}
-        col_secante = inputs['secante'][2]
-        func = inputs['fonction'][0]
-        precision_required = inputs['precision'][0]
-        x1 = inputs['min'][0]
-        x2 = inputs['max'][0]
-        x1_context = {"x": x1}
-        x1_result = eval(func, globals(), x1_context)
-        x2_context = {"x": x2}
-        x2_result = eval(func, globals(), x2_context)
-        approxs[x1] = x1_result
-        approxs[x2] = x2_result
-        min = inputs['min'][0]
-        max = inputs['max'][0]
+    # values
+    secante_list = []
+    approxs = {}
+    col_secante = inputs['secante'][2]
+    func = inputs['fonction'][0]
+    precision_required = inputs['precision'][0]
+    x1 = inputs['min'][0]
+    x2 = inputs['max'][0]
+    x1_context = {"x": x1}
+    x1_result = eval(func, globals(), x1_context)
+    x2_context = {"x": x2}
+    x2_result = eval(func, globals(), x2_context)
+    approxs[x1] = x1_result
+    approxs[x2] = x2_result
+    min = inputs['min'][0]
+    max = inputs['max'][0]
 
-        if x1_result * x2_result > 0:
-            secante_result = "Aucun zero sur cette section"
+    if x1_result * x2_result > 0:
+        secante_result = "Aucun zero sur cette section"
 
-        precision_result=abs(x2-x1)
+    precision_result=abs(x2-x1)
 
-        while abs(precision_result) > abs(precision_required):
-            fx1 = eval(func, globals(), {"x": x1})
-            fx2 = eval(func, globals(), {"x": x2})
+    while abs(precision_result) > abs(precision_required):
+        fx1 = eval(func, globals(), {"x": x1})
+        fx2 = eval(func, globals(), {"x": x2})
+        if fx2 - fx1 ==0:
+            secante_result = "Erreur : Division par Zero"
+            break
+        x3 = x2-(fx2/((fx2-fx1)/(x2-x1)))
+        x3_context = {"x": x3}
+        x3_result = eval(func, globals(), x3_context)
+        approxs[x3] = x3_result
+        secante_list.append(x3)
+        precision_result = abs(x3_result)
+        if np.sign(fx2) == np.sign(x3_result):
+            x2 = x3
+        else:
+            x1 = x3
+        secante_result = x3
 
-            if fx2 - fx1 ==0:
-                secante_result = "Erreur : Division par Zero"
-                break
-
-            x3 = x2-(fx2/((fx2-fx1)/(x2-x1)))
-            x3_context = {"x": x3}
-            x3_result = eval(func, globals(), x3_context)
-            approxs[x3] = x3_result
-            x1, x2 = x2, x3
-            precision_result = abs(x2-x1)
-            secante_list.append(x3)
-            secante_result= x3
-        if  secante_result >  max or secante_result < min:
-            secante_result = "Aucun zero sur cette section"
-
-    finally:
-        ws.range(f"C{col_secante}").value = secante_result
-        if inputs['animationordinateur'][0] == 1:
-            add_animated_graph(approxs, inputs, func, 'secante')
+    if secante_result > max or secante_result < min:
+        secante_result = "Aucun zero sur cette section"
+    ws.range(f"C{col_secante}").value = secante_result
+    if inputs['animationordinateur'][0] == 1:
+        add_animated_graph(approxs, inputs, func, 'secante')
         populate_graph_data(inputs, "secante", approxs, secante_result)
 
 def newton(inputs: dict, ws: xw.Sheet, min, max):
