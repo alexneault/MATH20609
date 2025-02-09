@@ -170,7 +170,7 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
     if x1_result * x2_result > 0:
         secante_result = "Aucun zero sur cette section"
 
-    precision_result=abs(x2-x1)
+    precision_result=1
 
     while abs(precision_result) > abs(precision_required):
         fx1 = eval(func, globals(), {"x": x1})
