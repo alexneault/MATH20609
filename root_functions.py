@@ -20,7 +20,7 @@ from matplotlib.animation import FuncAnimation
 import sympy as sp
 #import imageio
 from PIL import Image, ImageSequence
-
+import os
 
 
 # Globals
@@ -57,15 +57,18 @@ def add_animated_graph (approximations, inputs, func, name):
     colors = np.linspace(0, 1, len(approximations.keys()))
     scatter = plt.scatter(list(approximations.keys()),list(approximations.values()), c=colors, cmap="Greens",edgecolors='black', s=100, alpha=0.9)
     red_point = plt.scatter(keys[-1], values[-1], color='red', s=25, zorder=3, edgecolors="black")
+    red_point.set_label("Dernière itération")
     def update(frame): #creates an iteration to generate the gif graph
         scatter.set_offsets(np.c_[keys[:frame + 1], values[:frame + 1]])
         scatter.set_array(colors[:frame + 1])
         return scatter, red_point
-
     anim = FuncAnimation(fig, update, frames=len(keys) + 10, interval=5000 / len(keys), blit=True)  # generate the gif
+    ax.set_title(f"Itérations de {name}")
+    ax.set_xlabel("Axe des X")
+    ax.set_ylabel("Axe des Y")
     plt.legend()
     plt.colorbar(scatter)
-    anim.save(f'{name} animation.gif', writer='pillow', fps=10) # save the gif in the folder
+    anim.save(f'{name}_animation.gif', writer='pillow', fps=10) # save the gif in the folder
 
 def merge_gifs_side_by_side(gif1_path, gif2_path, output_path):
     # Load both GIFs
@@ -185,6 +188,9 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
         secante_result= x3
 
     ws.range(f"C{col_secante}").value = secante_result
+
+    if inputs['animationordinateur'][0] == 1:
+        add_animated_graph(approxs, inputs, func, 'secante')
     populate_graph_data(inputs, "secante", approxs, secante_result)
 
 def newton(inputs: dict, ws: xw.Sheet, min, max):
@@ -215,13 +221,70 @@ def newton(inputs: dict, ws: xw.Sheet, min, max):
         print(x2)
 
     ws.range(f"C{col_newton}").value = newton_result
-    populate_graph_data(inputs, "secante", approxs, newton_result)
+    if inputs['animationordinateur'][0] == 1:
+        add_animated_graph(approxs, inputs, func, 'newton')
+    populate_graph_data(inputs, "newton", approxs, newton_result)
 
 def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
     None
 
 def muller(inputs: dict, ws: xw.Sheet, min, max):
-    None
+    muller_approxs = {}
+    col_muller = inputs['muller'][2]
+    func = inputs['fonction'][0]
+    precision_required = inputs['precision'][0]
+    max_iterations = 2500  #
+
+    def f(x):
+        context = {"x": x}
+        return eval(func, globals(), context)
+
+    precision_result = float('inf')
+    iteration = 0
+    x0 = inputs['min'][0]
+    x1 = inputs['max'][0]
+    x2 = ((x1-x0)/2)+0.1
+
+
+    while iteration < max_iterations:
+        f0, f1, f2 = f(x0), f(x1), f(x2)
+        muller_approxs[x0] = f0
+        muller_approxs[x1] = f1
+        muller_approxs[x2] = f2
+
+        # Coefficient d<interpolation
+        h1, h2 = x1 - x0, x2 - x1
+        d1, d2 = (f1 - f0) / h1, (f2 - f1) / h2
+        a = (d2 - d1) / (h2 + h1)
+        b = a * h2 + d2
+        c = f2
+
+        discriminant = sp.sqrt(b ** 2 - 4 * a * c)
+        denom1, denom2 = b + discriminant, b - discriminant
+
+        if abs(denom1) > abs(denom2):
+            x3 = x2 - (2 * c) / denom1
+        else:
+            x3 = x2 - (2 * c) / denom2
+
+        muller_approxs[x3] = f(x3)
+
+        # Check for convergence
+        if abs(x3 - x2) < precision_required:
+            muller_result = x3
+            break
+
+        # Update points for next iteration
+        x0, x1, x2 = x1, x2, x3
+        iteration += 1
+
+    else:
+        muller_result = "No convergence after max iterations"
+
+    ws.range(f"C{col_muller}").value = muller_result
+    populate_graph_data(inputs, "muller", muller_approxs, muller_result)
+    if inputs.get('animationordinateur', [0])[0] == 1:
+        add_animated_graph(muller_approxs, inputs, func, 'muller')
 
 def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
 
@@ -249,7 +312,8 @@ def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
             x0 = bissectrice.subs(x,temp)
         pointfixe_result = x0
         ws.range(f"C{col_pointfixe}").value = pointfixe_result
-        add_animated_graph(pointfixe_approxs, inputs, func, 'pointfixe')
+        if inputs['animationordinateur'][0] == 1:
+            add_animated_graph(pointfixe_approxs, inputs, func, 'pointfixe')
 
     else:
         pointfixe_result = "les valeurs absolues des dérivés au point max et min sont supérieurs ou égales à 1"
@@ -329,10 +393,31 @@ def handle_inputs(file_name: str):
             add_approx_plot(axes, nb_of_plot)
         ws.pictures.add(fig, name='Graphiques', update=True, left=ws.range('E8').left, top=ws.range('E8').top)
 
-    merge_gifs_side_by_side('bissection animation.gif','pointfixe animation.gif', 'merged.gif')
+    #add the animated graph je vais creer une loop pour le faire pour chacun des graphs plus tard.
+    if input_data['animationordinateur'][0] == 1:
+
+
+        gif_list = []
+        y=10
+        if input_data['bissection'][0] == 1: gif_list.append(f'bissection_animation')
+        if input_data['secante'][0] == 1: gif_list.append(f'secante_animation')
+        if input_data['newton'][0] == 1: gif_list.append(f'newton_animation')
+        if input_data['quasinewton'][0] == 1: gif_list.append(f'quasinewton_animation')
+        if input_data['muller'][0] == 1: gif_list.append(f'muller_animation')
+        if input_data['pointfixe'][0]: gif_list.append(f'pointfixe_animation')
+
+        for i in gif_list:
+            try:
+                script_dir = os.path.dirname(__file__)  # folder where this .py file lives
+                gif_path = os.path.join(script_dir, f"{i}.gif")
+                ws.pictures.add(gif_path, left=ws.range(f"S{y}").left)
+                y += 10
+            except:
+                print(f"{i} did not work")
+
+
 
     print(f"Les données ont été ajoutées à l'onglet '{output}' du fichier '{file_name}'.")
-    #print(input_data)
 
 
 # pip install -r requirements.txt -> pour les dependencies
