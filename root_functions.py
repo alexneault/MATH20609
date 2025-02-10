@@ -127,7 +127,7 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
         bissection_list = []
 
         if x1_result * x2_result > 0:
-            bissection_result = "Aucun zero sur cette section" # Cette section ne marche pas vraiment, si les deux points sont du même signe, aucune réponse n'est retournée
+            bissection_result = "La bissection ne permet pas d'identifier de racine sur cette section (deux résultats de même signe)" # Cette section ne marche pas vraiment, si les deux points sont du même signe, aucune réponse n'est retournée
         else:
             precision_result = 1
             while precision_result > precision_required:
@@ -138,17 +138,17 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
                 x3_context = {"x": x3}
                 x3_result = eval(func, globals(), x3_context)
                 bissection_approxs[x3] = x3_result
+                print(x3_result)
                 if x3_result > 0:
                     x2 = x3
                 else:
                     x1 = x3
+                print(x1, x2)
                 bissection_list.append(x3)
                 bissection_result = x3
-                precision_result = x2-x1
-                if len(bissection_approxs) > 2500:
-                    bissection_result = "Aucun zero sur cette section"  # Cette section ne marche pas vraiment, si les deux points sont du même signe, aucune
-                    proccess_failed = True
-                    break
+                precision_result = abs(x2-x1)
+                print(precision_result)
+
     except OverflowError:
         bissection_result = "Erreur, résultat des bornes trop élevé"
     except ZeroDivisionError:
@@ -203,7 +203,7 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
         secante_result = x3
 
     if secante_result > max or secante_result < min:
-        secante_result = "Aucun zero sur cette section"
+        secante_result = "La méthode diverge"
     if inputs['animationordinateur'][0] == 1:
         add_animated_graph(approxs, inputs, func, 'secante')
         populate_graph_data(inputs, "secante", approxs, secante_result)
@@ -247,7 +247,7 @@ def newton(inputs: dict, ws: xw.Sheet, min, max):
         newton_list.append(x2)
         newton_result = x2
     if newton_result > max or newton_result < min:
-        newton_result = "Aucun zero sur cette section"
+        newton_result = "La méthode diverge"
 
     ws.range(f"C{col_newton}").value = newton_result
     if inputs['animationordinateur'][0] == 1:
@@ -376,10 +376,7 @@ def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
         else:
             x0 = x2
         bissectrice = x
-        for i in range(1,250):
-            countr = countr + 1
-            if countr > ite:
-                break
+        for i in range(1,ite):
             pointfixe_approxs[x0] = func2.subs(x,x0)
             temp = func2.subs(x,x0)
             x0 = bissectrice.subs(x,temp)
