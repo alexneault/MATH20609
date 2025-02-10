@@ -51,6 +51,8 @@ iterations = ws.range("B23").value
 
 def add_animated_graph (approximations, inputs, func, name):
     #creates an animated graph
+    script_dir = os.path.dirname(__file__)  # folder where this .py file lives
+    gif_path = os.path.join(script_dir, f"{name}_animation.gif")
     values = list(approximations.values()) #x values of the function
     keys = list(approximations.keys()) #y values of the function
     fig, ax = plt.subplots() #initiate graph process
@@ -71,7 +73,7 @@ def add_animated_graph (approximations, inputs, func, name):
     ax.set_ylabel("Axe des Y")
     plt.legend()
     plt.colorbar(scatter)
-    anim.save(f'{name}_animation.gif', writer='pillow', fps=3) # save the gif in the folder
+    anim.save(gif_path, writer='pillow', fps=3) # save the gif in the folder
 
 def merge_gifs_side_by_side(gif1_path, gif2_path, output_path):
     # Load both GIFs
@@ -481,7 +483,7 @@ def handle_inputs(file_name: str):
                 script_dir = os.path.dirname(__file__)  # folder where this .py file lives
                 gif_path = os.path.join(script_dir, f"{i}.gif")
                 ws.pictures.add(gif_path, left=ws.range(f"S{y}").left, top= ws.range(f'S{y}').top)
-                y += 8
+                y += 9
             except:
                 print(f"{i} did not work")
 
