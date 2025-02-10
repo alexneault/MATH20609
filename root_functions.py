@@ -22,9 +22,6 @@ import sympy as sp
 from PIL import Image, ImageSequence
 import os
 
-
-# Globals
-nb_iterations = 5
 approxs_plot_data = {}
 root_plot_data = {}
 
@@ -44,6 +41,10 @@ def run_functions(inputs: dict, ws: xw.Sheet, min, max):
     if inputs['muller'][0] == 1: muller(inputs, ws, min, max)
     if inputs['pointfixe'][0] == 1: pointfixe(inputs, ws, min, max)
 
+#nbr max. d'itérations à effectuer
+wb = xw.Book("Devoir1_Entame.xlsm")
+ws= wb.sheets[0]
+iterations = ws.range("B23").value
 
 def add_animated_graph (approximations, inputs, func, name):
     #creates an animated graph
@@ -113,7 +114,7 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
         bissection_approxs[x1] = x1_result
         bissection_approxs[x2] = x2_result
 
-        ite = nb_iterations
+        ite = iterations
         countr = 1
 
         if x1_result > x2_result:
@@ -172,7 +173,7 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
     approxs[x2] = x2_result
     min = inputs['min'][0]
     max = inputs['max'][0]
-    ite = nb_iterations
+    ite = iterations
     countr = 1
 
     if x1_result * x2_result > 0:
@@ -223,7 +224,7 @@ def newton(inputs: dict, ws: xw.Sheet, min, max):
     newton_list = []
     x = sp.Symbol("x")
 
-    ite = nb_iterations
+    ite = iterations
     countr = 1
 
     while precision > precision_required:
@@ -314,7 +315,7 @@ def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
     func = inputs['fonction'][0]
     precision_required = inputs['precision'][0]
 
-    ite = nb_iterations
+    ite = iterations
     countr = 1
 
     x = sp.Symbol("x")
