@@ -160,6 +160,7 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
     populate_graph_data(inputs, "bissection", bissection_approxs, bissection_result)
     if inputs['animationordinateur'][0] == 1:
         add_animated_graph(bissection_approxs, inputs, func,'bissection')
+    print('Bissection done')
 
 def secante(inputs: dict, ws: xw.Sheet, min, max):
     # values
@@ -208,8 +209,10 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
         secante_result = "La méthode diverge"
     if inputs['animationordinateur'][0] == 1:
         add_animated_graph(approxs, inputs, func, 'secante')
-        populate_graph_data(inputs, "secante", approxs, secante_result)
+    
     ws.range(f"C{col_secante}").value = secante_result
+    populate_graph_data(inputs, "secante", approxs, secante_result)
+    print('secante done')
 
 def newton(inputs: dict, ws: xw.Sheet, min, max):
     approxs = {}
@@ -256,6 +259,8 @@ def newton(inputs: dict, ws: xw.Sheet, min, max):
         add_animated_graph(approxs, inputs, func, 'newton')
     populate_graph_data(inputs, "newton", approxs, newton_result)
     print(approxs)
+    print('newton done')
+
 
 def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
     qnewton_approxs = {}
@@ -297,13 +302,16 @@ def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
     ws.range(f"C{col_qnewton}").value = qnewton_result
     if inputs['animationordinateur'][0] == 1:
         add_animated_graph(qnewton_approxs, inputs, func, 'quasi-newton')
+    populate_graph_data(inputs, "quasi-newton", qnewton_approxs, qnewton_result)
+    print('quasi-newton done')
+
 
 def muller(inputs: dict, ws: xw.Sheet, min, max):
     muller_approxs = {}
     col_muller = inputs['muller'][2]
     func = inputs['fonction'][0]
     precision_required = inputs['precision'][0]
-    max_iterations = 2500  #
+    max_iterations = iterations  #
 
     def f(x):
         context = {"x": x}
@@ -354,6 +362,7 @@ def muller(inputs: dict, ws: xw.Sheet, min, max):
     populate_graph_data(inputs, "muller", muller_approxs, muller_result)
     if inputs.get('animationordinateur', [0])[0] == 1:
         add_animated_graph(muller_approxs, inputs, func, 'muller')
+    print("muller done")
 
 def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
 
@@ -386,10 +395,17 @@ def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
         ws.range(f"C{col_pointfixe}").value = pointfixe_result
         if inputs['animationordinateur'][0] == 1:
             add_animated_graph(pointfixe_approxs, inputs, func, 'pointfixe')
-
+        populate_graph_data(inputs, "pointfixe", pointfixe_approxs, pointfixe_result)
     else:
         pointfixe_result = "les valeurs absolues des dérivés au point max et min sont supérieurs ou égales à 1"
         ws.range(f"C{col_pointfixe}").value = pointfixe_result
+    print("pointfixe done")
+
+def find_root():
+    for value in root_plot_data.values():
+        if isinstance(value, (int, float)):  # Check if the value is a number (int or float)
+            return value
+    return None  # If no valid number is found
 
 
 def initiate_plot(nb_of_plot: int):
@@ -397,13 +413,21 @@ def initiate_plot(nb_of_plot: int):
         return plt.subplots(figsize=(6, 4))
     return plt.subplots(1, nb_of_plot, figsize=(12, 4))
 
-def add_root_plot(axs: matplotlib.axes, nb_of_plot):
+def add_root_plot(axs: matplotlib.axes, nb_of_plot, fonction, min, max):
     plot = axs if nb_of_plot == 1 else axs[0]
-    df = pd.DataFrame(root_plot_data.items(), columns=['funct','root'])
-    plot.bar(df['funct'], df['root'], color='blue')
-    plot.set_title('Racines')
-    plot.set_xlabel('Function')
-    plot.set_ylabel('Root value')
+
+    x = np.linspace(int(min), int(max), 1000) #graph the function through 1000 points between max and min
+    y = [eval(fonction[0], globals(), {'x':i}) for i in x]
+    root_y = 0
+    root_x = find_root()
+    plot.scatter(root_x, root_y, color='red', zorder=5)  # zorder ensures it's on top
+# Annotate the point
+
+    plot = axs if nb_of_plot == 1 else axs[0]
+    plot.plot(x, y, color='blue')
+    plot.set_title('Racine de fonction')
+    plot.set_xlabel('x')
+    plot.set_ylabel('y')
     plot.legend()
 
 def add_approx_plot(axs: matplotlib.axes, nb_of_plot):
@@ -460,7 +484,8 @@ def handle_inputs(file_name: str):
     if nb_of_plot > 0:
         fig, axes = initiate_plot(nb_of_plot)
         if input_data['graphiqueracine'][0] == 1:
-            add_root_plot(axes, nb_of_plot)
+            print(x_min, '###', x_max)
+            add_root_plot(axes, nb_of_plot, input_data['fonction'], x_min[0], x_max[0])
         if input_data['graphiqueapproximations'][0] == 1:
             add_approx_plot(axes, nb_of_plot)
         ws.pictures.add(fig, name='Graphiques', update=True, left=ws.range('E8').left, top=ws.range('E8').top)
