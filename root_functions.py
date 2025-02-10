@@ -24,7 +24,7 @@ import os
 
 
 # Globals
-nb_iterations = 10
+nb_iterations = 5
 approxs_plot_data = {}
 root_plot_data = {}
 
@@ -43,7 +43,6 @@ def run_functions(inputs: dict, ws: xw.Sheet, min, max):
     if inputs['quasinewton'][0] == 1: quasi_newton(inputs, ws, min, max)
     if inputs['muller'][0] == 1: muller(inputs, ws, min, max)
     if inputs['pointfixe'][0] == 1: pointfixe(inputs, ws, min, max)
-
 
 
 def add_animated_graph (approximations, inputs, func, name):
@@ -113,6 +112,10 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
         x2_result = eval(func, globals(), x2_context)
         bissection_approxs[x1] = x1_result
         bissection_approxs[x2] = x2_result
+
+        ite = nb_iterations
+        countr = 1
+
         if x1_result > x2_result:
             x1 = inputs['max'][0]
             x2 = inputs['min'][0]
@@ -124,6 +127,9 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
         else:
             precision_result = 1
             while precision_result > precision_required:
+                countr = countr + 1
+                if countr > ite:
+                    break
                 x3 = (x1 + x2)/2
                 x3_context = {"x": x3}
                 x3_result = eval(func, globals(), x3_context)
@@ -166,6 +172,8 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
     approxs[x2] = x2_result
     min = inputs['min'][0]
     max = inputs['max'][0]
+    ite = nb_iterations
+    countr = 1
 
     if x1_result * x2_result > 0:
         secante_result = "Aucun zero sur cette section"
@@ -173,6 +181,9 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
     precision_result=1
 
     while abs(precision_result) > abs(precision_required):
+        countr = countr + 1
+        if countr > ite:
+            break
         fx1 = eval(func, globals(), {"x": x1})
         fx2 = eval(func, globals(), {"x": x2})
         if fx2 - fx1 ==0:
@@ -212,7 +223,13 @@ def newton(inputs: dict, ws: xw.Sheet, min, max):
     newton_list = []
     x = sp.Symbol("x")
 
+    ite = nb_iterations
+    countr = 1
+
     while precision > precision_required:
+        countr = countr + 1
+        if countr > ite:
+            break
         fx1 = eval(func, globals(), {"x": x1})
         deriv = sp.diff(func, x)
         deriv_value = deriv.subs(x, x1)
@@ -249,7 +266,6 @@ def muller(inputs: dict, ws: xw.Sheet, min, max):
     x0 = inputs['min'][0]
     x1 = inputs['max'][0]
     x2 = ((x1-x0)/2)+0.1
-
 
     while iteration < max_iterations:
         f0, f1, f2 = f(x0), f(x1), f(x2)
@@ -298,6 +314,9 @@ def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
     func = inputs['fonction'][0]
     precision_required = inputs['precision'][0]
 
+    ite = nb_iterations
+    countr = 1
+
     x = sp.Symbol("x")
     func2 = sp.sympify(func)
     x1 = inputs['min'][0]
@@ -312,6 +331,9 @@ def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
             x0 = x2
         bissectrice = x
         for i in range(1,250):
+            countr = countr + 1
+            if countr > ite:
+                break
             pointfixe_approxs[x0] = func2.subs(x,x0)
             temp = func2.subs(x,x0)
             x0 = bissectrice.subs(x,temp)
