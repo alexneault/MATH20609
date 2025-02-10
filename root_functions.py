@@ -62,13 +62,13 @@ def add_animated_graph (approximations, inputs, func, name):
         scatter.set_offsets(np.c_[keys[:frame + 1], values[:frame + 1]])
         scatter.set_array(colors[:frame + 1])
         return scatter, red_point
-    anim = FuncAnimation(fig, update, frames=len(keys) + 10, interval=5000 / len(keys), blit=True)  # generate the gif
+    anim = FuncAnimation(fig, update, frames=len(keys) + 10, interval=5000000, blit=True)  # generate the gif
     ax.set_title(f"Itérations de {name}")
     ax.set_xlabel("Axe des X")
     ax.set_ylabel("Axe des Y")
     plt.legend()
     plt.colorbar(scatter)
-    anim.save(f'{name}_animation.gif', writer='pillow', fps=10) # save the gif in the folder
+    anim.save(f'{name}_animation.gif', writer='pillow', fps=3) # save the gif in the folder
 
 def merge_gifs_side_by_side(gif1_path, gif2_path, output_path):
     # Load both GIFs
@@ -237,6 +237,9 @@ def newton(inputs: dict, ws: xw.Sheet, min, max):
         x2 = x1 - (fx1 / deriv_value)
         fx2 = eval(func, globals(), {"x": x1})
         x1 = x2
+        print(x1)
+        print(fx1)
+        approxs[x1] = fx1
         precision = abs(fx2)
         newton_list.append(x2)
         newton_result = x2
@@ -247,9 +250,48 @@ def newton(inputs: dict, ws: xw.Sheet, min, max):
     if inputs['animationordinateur'][0] == 1:
         add_animated_graph(approxs, inputs, func, 'newton')
     populate_graph_data(inputs, "newton", approxs, newton_result)
+    print(approxs)
 
 def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
-    None
+    qnewton_approxs = {}
+    col_qnewton = inputs['quasinewton'][2]
+    func = inputs['fonction'][0]
+    precision_required = inputs['precision'][0]
+
+    x = sp.Symbol("x")
+    func2 = sp.sympify(func)
+    x1 = inputs['min'][0]
+    x2 = inputs['max'][0]
+
+    f = sp.lambdify(x, func2, 'math')
+
+    precision_result = float('inf')
+    qnewton_list = []
+    max_iterations = 100
+    iteration = 0
+
+    if f(x1) * f(x2) > 0:
+        qnewton_result = "Il n'y a pas de racine dans l'intervalle donné de cette fonction" #pas certain qu'on doit faire ça ?
+
+    while precision_result > precision_required and iteration < max_iterations:
+        fx1, fx2 = f(x1), f(x2)
+
+        if fx2 - fx1 == 0:
+            return "Erreur : Division par zéro, impossible d'effectuer l'approximation avec la méthode de la sécante."
+
+        x_new = x2 - fx2 * ((x2 - x1) / (fx2 - fx1))
+        precision_result = abs(x_new - x2)
+        qnewton_list.append(x_new)
+        qnewton_approxs[x_new] = f(x_new)
+
+        x1, x2 = x2, x_new
+        iteration += 1
+
+    qnewton_result = x2 if precision_result <= precision_required else "Aucune convergence"
+
+    ws.range(f"C{col_qnewton}").value = qnewton_result
+    if inputs['animationordinateur'][0] == 1:
+        add_animated_graph(qnewton_approxs, inputs, func, 'quasi-newton')
 
 def muller(inputs: dict, ws: xw.Sheet, min, max):
     muller_approxs = {}
@@ -426,11 +468,11 @@ def handle_inputs(file_name: str):
 
 
         gif_list = []
-        y=10
+        y=8
         if input_data['bissection'][0] == 1: gif_list.append(f'bissection_animation')
         if input_data['secante'][0] == 1: gif_list.append(f'secante_animation')
         if input_data['newton'][0] == 1: gif_list.append(f'newton_animation')
-        if input_data['quasinewton'][0] == 1: gif_list.append(f'quasinewton_animation')
+        if input_data['quasinewton'][0] == 1: gif_list.append(f'quasi-newton_animation')
         if input_data['muller'][0] == 1: gif_list.append(f'muller_animation')
         if input_data['pointfixe'][0]: gif_list.append(f'pointfixe_animation')
 
@@ -438,8 +480,8 @@ def handle_inputs(file_name: str):
             try:
                 script_dir = os.path.dirname(__file__)  # folder where this .py file lives
                 gif_path = os.path.join(script_dir, f"{i}.gif")
-                ws.pictures.add(gif_path, left=ws.range(f"S{y}").left)
-                y += 10
+                ws.pictures.add(gif_path, left=ws.range(f"S{y}").left, top= ws.range(f'S{y}').top)
+                y += 8
             except:
                 print(f"{i} did not work")
 
