@@ -25,6 +25,7 @@ import sympy as sp
 #import imageio
 from PIL import Image, ImageSequence
 import os
+from sympy import Abs
 
 approxs_plot_data = {}
 root_plot_data = {}
@@ -83,7 +84,7 @@ def add_animated_graph (approximations, inputs, func, name):
     plt.colorbar(scatter)
     anim.save(gif_path, writer='pillow', fps=3) # save the gif in the folder
 
-def merge_gifs_side_by_side(gif1_path, gif2_path, output_path):
+def merge_gifs_side_by_side(gif1_path, gif2_path, output_path): #fonction inutilisée, mais disponible
     # Load both GIFs
     gif1 = Image.open(gif1_path)
     gif2 = Image.open(gif2_path)
@@ -111,9 +112,11 @@ def merge_gifs_side_by_side(gif1_path, gif2_path, output_path):
 
 
 def bissection(inputs: dict, ws: xw.Sheet, min, max):
+    #établir le temps maximal
     max_time = inputs['tempslimite'][0]
     t1_start = process_time() 
     try:
+        #set up de la fonction, établir les paramètres de base
         bissection_approxs = {}
         col_bissection = inputs['bissection'][2]
         func = inputs['fonction'][0]
@@ -121,7 +124,7 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
 
         x1 = inputs['min'][0]
         x2 = inputs['max'][0]
-
+        #Calculer la valeur de x1 et x2 selon la fonction
         x1_context = {"x": x1}
         x1_result = eval(func, globals(), x1_context)
         x2_context = {"x": x2}
@@ -131,7 +134,7 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
 
         ite = iterations
         countr = 0
-
+        #trouver lequel de x1 ou x2 a le plus grand y. Le plus grand y détermine x2
         if x1_result > x2_result:
             x1 = inputs['max'][0]
             x2 = inputs['min'][0]
@@ -139,6 +142,7 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
         bissection_list = []
 
         if x1_result * x2_result > 0:
+            #si x1 et x2 sont de même signe, la méthode ne permettra pas de trouver une racine
             bissection_result = "La bissection ne permet pas d'identifier de racine sur cette section (deux résultats de même signe)" # Cette section ne marche pas vraiment, si les deux points sont du même signe, aucune réponse n'est retournée
         else:
             precision_result = 1
@@ -151,12 +155,11 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
                 countr = countr + 1
                 if countr > ite:
                     break
-                x3 = (x1 + x2)/2
+                x3 = (x1 + x2)/2 #détermine x3 en trouvant le point entre x1 et x2
                 x3_context = {"x": x3}
-                x3_result = eval(func, globals(), x3_context)
+                x3_result = eval(func, globals(), x3_context) #calculer x3 dans la fonction
                 bissection_approxs[x3] = x3_result
-                print(x3_result)
-                if x3_result > 0:
+                if x3_result > 0: #si x3 > 0, alors il devient le nouveau x2, sinon, il devient le nouveau x1
                     x2 = x3
                 else:
                     x1 = x3
@@ -170,7 +173,7 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
         bissection_result = "Processus implique une division par 0"
 
     t1_stop = process_time() 
-    ws.range(f"C{col_bissection}").value = bissection_result
+    ws.range(f"C{col_bissection}").value = bissection_result #insertion dans le doc excel
     ws.range(f"D{col_bissection}").value = t1_stop - t1_start
 
     populate_graph_data(inputs, "bissection", bissection_approxs, bissection_result)
@@ -273,16 +276,17 @@ def newton(inputs: dict, ws: xw.Sheet, min, max):
         if countr > ite:                            # On sort de la boucle si on dépasse le nombre d'itérations établit
             break
         fx1 = eval(func, globals(), {"x": x1})      # Évaluation de la fonction en x1 (f(x1))
+        approxs[x1] = fx1
         deriv = sp.diff(func, x)                    # Calcul de la dérivée en x1 (f'(x1))
         deriv_value = deriv.subs(x, x1)
         x2 = x1 - (fx1 / deriv_value)               # On calcule la prochaine approximation
         fx2 = eval(func, globals(), {"x": x1})
         x1 = x2
-        approxs[x1] = fx1
+
         precision = abs(fx2)
         newton_list.append(x2)                      # On ajoute le nouveau point à notre liste
         newton_result = x2
-    if newton_result > max or newton_result < min:  # La méthode diverge si l'itération sort du domaine d'exploration
+    if newton_result > max*50 or newton_result < min*50:  # La méthode diverge si l'itération sort du domaine d'exploration
         newton_result = "La méthode diverge"
 
     # Insertion des résultats dans le chiffrier
@@ -435,38 +439,62 @@ def muller(inputs: dict, ws: xw.Sheet, min, max):
         add_animated_graph(muller_approxs, inputs, func, 'muller')
 
 def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
+    #set up de la fonction et initialisation des paramètres
     max_time = inputs['tempslimite'][0]
     t1_start = process_time() 
     pointfixe_approxs = {}
     col_pointfixe = inputs['pointfixe'][2]
     func = inputs['fonction'][0]
     precision_required = inputs['precision'][0]
-
     ite = iterations
-
     x = sp.Symbol("x")
-    func2 = sp.sympify(func)
-    x1 = inputs['min'][0]
-    x2 = inputs['max'][0]
-    funcprime = sp.diff(func2,x)
-    min_funcprime = funcprime.subs(x,x1)
-    max_funcprime = funcprime.subs(x,x2)
-    if abs(float(min_funcprime)) < 1 or abs(float(max_funcprime)) < 1:
-        if float(min_funcprime) <= float(max_funcprime):
-            x0 = x1
+    y = sp.Symbol('y')
+    func1 = sp.sympify(func)
+    print(func1)
+    if func1.count(x) > 1 :
+        func2_str = str(func1)
+        func2_str = func2_str.replace("x", "y", 1)
+        func2 = sp.sympify(func2_str)
+    else:
+        func2 = func1
+
+    gofx = sp.solve(func2, y) # création de la fonction g(x)
+    if not gofx:
+        gofx = func2
+    else:
+        gofx = gofx[0]
+    print(gofx)
+    if gofx != 0:
+        x1 = inputs['min'][0]
+        x2 = inputs['max'][0]
+        funcprime = sp.diff(gofx,x) # On fait la dérivée de la fonction
+        min_funcprime = funcprime.subs(x,x1)# On évalue la dérivée au point min et au point max
+        print(min_funcprime)
+        max_funcprime = funcprime.subs(x,x2)
+        print(max_funcprime)
+        if min_funcprime.is_real is False: #vérifie que les dérivées donnent des nombres réels
+            min_funcprime = 2
+        if max_funcprime.is_real is False:
+            max_funcprime = 2
+        if abs(float(min_funcprime)) < 1 or abs(float(max_funcprime)) < 1: #on vérifie si l'un des deux points possède une dérivée plus petite ou égale à 1
+            if float(min_funcprime) <= float(max_funcprime):
+                x0 = x1
+            else:
+                x0 = x2
+            bissectrice = x #on crée la fonction bissectrice
+            for i in range(1,int(ite)):
+                current_time = process_time()
+                if current_time - t1_start > max_time:
+                    ws.range(f"C{col_pointfixe}").value = "Le temps maximum est dépassé"
+                    ws.range(f"D{col_pointfixe}").value = current_time - t1_start
+                    return
+                pointfixe_approxs[x0] = func1.subs(x,x0)
+                temp = gofx.subs(x,x0) # on trouve la valeur de x0 dans la fonction
+                x0 = bissectrice.subs(x,temp) # on insert la valeur du y trouvé dans la fonction bissectrice
+            pointfixe_result = x0
+            print(pointfixe_result)
         else:
-            x0 = x2
-        bissectrice = x
-        for i in range(1,int(ite)):
-            current_time = process_time()
-            if current_time - t1_start > max_time:
-                ws.range(f"C{col_pointfixe}").value = "Le temps maximum est dépassé"
-                ws.range(f"D{col_pointfixe}").value = current_time - t1_start
-                return
-            pointfixe_approxs[x0] = func2.subs(x,x0)
-            temp = func2.subs(x,x0)
-            x0 = bissectrice.subs(x,temp)
-        pointfixe_result = x0
+            pointfixe_result = gofx
         ws.range(f"C{col_pointfixe}").value = pointfixe_result
         if inputs['animationordinateur'][0] == 1:
             add_animated_graph(pointfixe_approxs, inputs, func, 'pointfixe')
