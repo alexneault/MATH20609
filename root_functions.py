@@ -450,57 +450,60 @@ def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
     x = sp.Symbol("x")
     y = sp.Symbol('y')
     func1 = sp.sympify(func)
-    print(func1)
     if func1.count(x) > 1 :
         func2_str = str(func1)
         func2_str = func2_str.replace("x", "y", 1)
         func2 = sp.sympify(func2_str)
+        gofx = sp.solve(func2, y)  # création de la fonction g(x)
     else:
-        func2 = func1
+        gofx = func1
 
-    gofx = sp.solve(func2, y) # création de la fonction g(x)
-    if not gofx:
-        gofx = func2
-    else:
+    if type(gofx) == list:
         gofx = gofx[0]
-    print(gofx)
-    if gofx != 0:
-        x1 = inputs['min'][0]
-        x2 = inputs['max'][0]
-        funcprime = sp.diff(gofx,x) # On fait la dérivée de la fonction
-        min_funcprime = funcprime.subs(x,x1)# On évalue la dérivée au point min et au point max
-        print(min_funcprime)
-        max_funcprime = funcprime.subs(x,x2)
-        print(max_funcprime)
-        if min_funcprime.is_real is False: #vérifie que les dérivées donnent des nombres réels
-            min_funcprime = 2
-        if max_funcprime.is_real is False:
-            max_funcprime = 2
-        if abs(float(min_funcprime)) < 1 or abs(float(max_funcprime)) < 1: #on vérifie si l'un des deux points possède une dérivée plus petite ou égale à 1
-            if float(min_funcprime) <= float(max_funcprime):
-                x0 = x1
+
+    if gofx.is_real == None:
+        try:
+            x1 = inputs['min'][0]
+            x2 = inputs['max'][0]
+            funcprime = sp.diff(gofx,x) # On fait la dérivée de la fonction
+            min_funcprime = funcprime.subs(x,x1)# On évalue la dérivée au point min et au point max
+            max_funcprime = funcprime.subs(x,x2)
+            if min_funcprime.is_real is False: #vérifie que les dérivées donnent des nombres réels
+                min_funcprime = 2
+            if max_funcprime.is_real is False:
+                max_funcprime = 2
+            print(min_funcprime)
+            print(max_funcprime)
+            if abs(float(min_funcprime)) < 1 or abs(float(max_funcprime)) < 1: #on vérifie si l'un des deux points possède une dérivée plus petite ou égale à 1
+                if float(min_funcprime) <= float(max_funcprime):
+                    x0 = x1
+                else:
+                    x0 = x2
+                bissectrice = x #on crée la fonction bissectrice
+                for i in range(1,int(ite)):
+                    current_time = process_time()
+                    if current_time - t1_start > max_time:
+                        ws.range(f"C{col_pointfixe}").value = "Le temps maximum est dépassé"
+                        ws.range(f"D{col_pointfixe}").value = current_time - t1_start
+                        return
+                    pointfixe_approxs[x0] = gofx.subs(x,x0)
+                    print(pointfixe_approxs[x0])
+                    temp = gofx.subs(x,x0) # on trouve la valeur de x0 dans la fonction
+                    x0 = bissectrice.subs(x,temp) # on insert la valeur du y trouvé dans la fonction bissectrice
+                pointfixe_result = x0
+                print(pointfixe_result)
             else:
-                x0 = x2
-            bissectrice = x #on crée la fonction bissectrice
-            for i in range(1,int(ite)):
-                current_time = process_time()
-                if current_time - t1_start > max_time:
-                    ws.range(f"C{col_pointfixe}").value = "Le temps maximum est dépassé"
-                    ws.range(f"D{col_pointfixe}").value = current_time - t1_start
-                    return
-                pointfixe_approxs[x0] = func1.subs(x,x0)
-                temp = gofx.subs(x,x0) # on trouve la valeur de x0 dans la fonction
-                x0 = bissectrice.subs(x,temp) # on insert la valeur du y trouvé dans la fonction bissectrice
-            pointfixe_result = x0
-            print(pointfixe_result)
-        else:
-            pointfixe_result = gofx
-        ws.range(f"C{col_pointfixe}").value = pointfixe_result
-        if inputs['animationordinateur'][0] == 1:
-            add_animated_graph(pointfixe_approxs, inputs, func, 'pointfixe')
-        populate_graph_data(inputs, "pointfixe", pointfixe_approxs, pointfixe_result)
+                pointfixe_result = gofx
+            ws.range(f"C{col_pointfixe}").value = pointfixe_result
+            if inputs['animationordinateur'][0] == 1:
+                add_animated_graph(pointfixe_approxs, inputs, func, 'pointfixe')
+            populate_graph_data(inputs, "pointfixe", pointfixe_approxs, pointfixe_result)
+        except:
+            pointfixe_result = "Echec, n'a pas trouvé de racine"
+            ws.range(f"C{col_pointfixe}").value = pointfixe_result
     else:
-        pointfixe_result = "les valeurs absolues des dérivés au point max et min sont supérieurs ou égales à 1"
+        pointfixe_approxs[0] = func1.subs(x, gofx)
+        pointfixe_result = gofx
         ws.range(f"C{col_pointfixe}").value = pointfixe_result
     t1_stop = process_time() 
     ws.range(f"D{col_pointfixe}").value = t1_stop - t1_start
