@@ -73,7 +73,7 @@ def add_animated_graph (approximations, inputs, func, name):
     ax.set_ylabel("Axe des Y")
     plt.legend()
     plt.colorbar(scatter)
-    anim.save(gif_path, writer='pillow', fps=3) # save the gif in the folder
+    anim.save(gif_path, writer='pillow', fps=10) # save the gif in the folder
 
 def merge_gifs_side_by_side(gif1_path, gif2_path, output_path):
     # Load both GIFs
@@ -145,11 +145,9 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
                     x2 = x3
                 else:
                     x1 = x3
-                print(x1, x2)
                 bissection_list.append(x3)
                 bissection_result = x3
                 precision_result = abs(x2-x1)
-                print(precision_result)
 
     except OverflowError:
         bissection_result = "Erreur, résultat des bornes trop élevé"
@@ -245,8 +243,6 @@ def newton(inputs: dict, ws: xw.Sheet, min, max):
         x2 = x1 - (fx1 / deriv_value)
         fx2 = eval(func, globals(), {"x": x1})
         x1 = x2
-        print(x1)
-        print(fx1)
         approxs[x1] = fx1
         precision = abs(fx2)
         newton_list.append(x2)
@@ -258,9 +254,6 @@ def newton(inputs: dict, ws: xw.Sheet, min, max):
     if inputs['animationordinateur'][0] == 1:
         add_animated_graph(approxs, inputs, func, 'newton')
     populate_graph_data(inputs, "newton", approxs, newton_result)
-    print(approxs)
-    print('newton done')
-
 
 def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
     qnewton_approxs = {}
@@ -387,7 +380,7 @@ def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
         else:
             x0 = x2
         bissectrice = x
-        for i in range(1,ite):
+        for i in range(1,int(ite)):
             pointfixe_approxs[x0] = func2.subs(x,x0)
             temp = func2.subs(x,x0)
             x0 = bissectrice.subs(x,temp)
