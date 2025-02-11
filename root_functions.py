@@ -212,7 +212,10 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
     populate_graph_data(inputs, "secante", approxs, secante_result)
     print('secante done')
 
+### Méthode de Newton ###
 def newton(inputs: dict, ws: xw.Sheet, min, max):
+
+    # Initialisation des variables nécessaires à l'algorithmme
     approxs = {}
     col_newton = inputs['newton'][2]
     func = inputs['fonction'][0]
@@ -226,30 +229,32 @@ def newton(inputs: dict, ws: xw.Sheet, min, max):
     min = inputs['min'][0]
     max = inputs['max'][0]
 
-    precision = 1
-    newton_list = []
+    precision = 1        # On débute avec une précision de 1, elle changera au courant de la boucle
+    newton_list = []     # Liste qui stockera les approximations
     x = sp.Symbol("x")
 
-    ite = iterations
-    countr = 1
+    ite = iterations    # Nombre d'itérations maximal qu'on veut effectuer
+    countr = 1          # Compteur d'itérations
 
+    # Boucle qui effectue l'agorithme de Newton
     while precision > precision_required:
         countr = countr + 1
-        if countr > ite:
+        if countr > ite:                            # On sort de la boucle si on dépasse le nombre d'itérations établit
             break
-        fx1 = eval(func, globals(), {"x": x1})
-        deriv = sp.diff(func, x)
+        fx1 = eval(func, globals(), {"x": x1})      # Évaluation de la fonction en x1 (f(x1))
+        deriv = sp.diff(func, x)                    # Calcul de la dérivée en x1 (f'(x1))
         deriv_value = deriv.subs(x, x1)
-        x2 = x1 - (fx1 / deriv_value)
+        x2 = x1 - (fx1 / deriv_value)               # On calcule la prochaine approximation
         fx2 = eval(func, globals(), {"x": x1})
         x1 = x2
         approxs[x1] = fx1
         precision = abs(fx2)
-        newton_list.append(x2)
+        newton_list.append(x2)                      # On ajoute le nouveau point à notre liste
         newton_result = x2
-    if newton_result > max or newton_result < min:
+    if newton_result > max or newton_result < min:  # La méthode diverge si l'itération sort du domaine d'exploration
         newton_result = "La méthode diverge"
 
+    # Insertion des résultats dans le chiffrier
     ws.range(f"C{col_newton}").value = newton_result
     if inputs['animationordinateur'][0] == 1:
         add_animated_graph(approxs, inputs, func, 'newton')
@@ -307,59 +312,67 @@ def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
     populate_graph_data(inputs, "quasi-newton", qnewton_approxs, qnewton_result)
     print('quasi-newton done')
 
-
+### Méthode de Muller ###
 def muller(inputs: dict, ws: xw.Sheet, min, max):
+
+    # Initialisation des variables nécessaires à l'algorithmme
     muller_approxs = {}
     col_muller = inputs['muller'][2]
     func = inputs['fonction'][0]
     precision_required = inputs['precision'][0]
-    max_iterations = iterations  #
+    max_iterations = iterations  
 
+    # Fonction qui permet d'évaluer la fonction en x
     def f(x):
         context = {"x": x}
         return eval(func, globals(), context)
 
+    # Initialisation du compteur d'itérations et du domaine d'exploration en x
     precision_result = float('inf')
     iteration = 0
     x0 = inputs['min'][0]
     x1 = inputs['max'][0]
     x2 = ((x1-x0)/2)+0.1
 
-    while iteration < max_iterations:
-        f0, f1, f2 = f(x0), f(x1), f(x2)
-        muller_approxs[x0] = f0
+    # Boucle de l'algorithme
+    while iteration < max_iterations:         # On arrête la boucle si on atteint le nombre maximal d'itérations
+        f0, f1, f2 = f(x0), f(x1), f(x2)      # Calcul de la fonctions aux trois points donnés
+        muller_approxs[x0] = f0               
         muller_approxs[x1] = f1
         muller_approxs[x2] = f2
 
-        # Coefficient d<interpolation
+        # Calcul des coefficients d'interpolation
         h1, h2 = x1 - x0, x2 - x1
         d1, d2 = (f1 - f0) / h1, (f2 - f1) / h2
         a = (d2 - d1) / (h2 + h1)
         b = a * h2 + d2
         c = f2
 
-        discriminant = sp.sqrt(b ** 2 - 4 * a * c)
+        discriminant = sp.sqrt(b ** 2 - 4 * a * c) # Calcul du discriminant
         denom1, denom2 = b + discriminant, b - discriminant
-
+        
+        # Permet de sélectionner la meilleure valeur de dénominateur
         if abs(denom1) > abs(denom2):
             x3 = x2 - (2 * c) / denom1
         else:
             x3 = x2 - (2 * c) / denom2
 
+        # On évalue la fonciton en x3 ce qui nous donne notre prochaine approximaiton
         muller_approxs[x3] = f(x3)
 
-        # Check for convergence
-        if abs(x3 - x2) < precision_required:
-            muller_result = x3
+        # Test qui permet de sortir de la boucle si on atteint la précision escomptée
+        if abs(x3 - x2) < precision_required: 
+            muller_result = x3         # Le résultat est celui de la dernière approximation
             break
 
-        # Update points for next iteration
+        # On ajuste les points en fonctions des nouveaux que nous avons calculés
         x0, x1, x2 = x1, x2, x3
-        iteration += 1
+        iteration += 1              # On incrémente le nombre d'itérations
 
     else:
-        muller_result = "No convergence after max iterations"
+        muller_result = "No convergence after max iterations" # Si la fonction ne converge pas
 
+    # Insertion des résultats dans le chiffirer
     ws.range(f"C{col_muller}").value = muller_result
     populate_graph_data(inputs, "muller", muller_approxs, muller_result)
     if inputs.get('animationordinateur', [0])[0] == 1:
