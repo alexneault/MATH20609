@@ -256,11 +256,14 @@ def newton(inputs: dict, ws: xw.Sheet, min, max):
     populate_graph_data(inputs, "newton", approxs, newton_result)
 
 def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
+    
+    #Initialisation des parametres
     qnewton_approxs = {}
     col_qnewton = inputs['quasinewton'][2]
     func = inputs['fonction'][0]
     precision_required = inputs['precision'][0]
-
+    
+    #Conversion de la fonction
     x = sp.Symbol("x")
     func2 = sp.sympify(func)
     x1 = inputs['min'][0]
@@ -273,9 +276,11 @@ def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
     max_iterations = 100
     iteration = 0
 
+    #Verification de la presence d'une racine
     if f(x1) * f(x2) > 0:
         qnewton_result = "Il n'y a pas de racine dans l'intervalle donné de cette fonction" #pas certain qu'on doit faire ça ?
 
+    #Boucle Quasi-Newton
     while precision_result > precision_required and iteration < max_iterations:
         fx1, fx2 = f(x1), f(x2)
 
@@ -290,9 +295,13 @@ def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
         x1, x2 = x2, x_new
         iteration += 1
 
+    #Verification de la convergence
     qnewton_result = x2 if precision_result <= precision_required else "Aucune convergence"
 
+    #Ecriture des resultats dans excel
     ws.range(f"C{col_qnewton}").value = qnewton_result
+    
+    #Generation des graphiques
     if inputs['animationordinateur'][0] == 1:
         add_animated_graph(qnewton_approxs, inputs, func, 'quasi-newton')
     populate_graph_data(inputs, "quasi-newton", qnewton_approxs, qnewton_result)
