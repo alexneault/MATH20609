@@ -472,24 +472,24 @@ def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
                 min_funcprime = 2
             if max_funcprime.is_real is False:
                 max_funcprime = 2
-            print(min_funcprime)
-            print(max_funcprime)
             if abs(float(min_funcprime)) < 1 or abs(float(max_funcprime)) < 1: #on vérifie si l'un des deux points possède une dérivée plus petite ou égale à 1
                 if float(min_funcprime) <= float(max_funcprime):
                     x0 = x1
                 else:
                     x0 = x2
                 bissectrice = x #on crée la fonction bissectrice
+                print(func1)
                 for i in range(1,int(ite)):
+                    print(x0)
                     current_time = process_time()
                     if current_time - t1_start > max_time:
                         ws.range(f"C{col_pointfixe}").value = "Le temps maximum est dépassé"
                         ws.range(f"D{col_pointfixe}").value = current_time - t1_start
                         return
-                    pointfixe_approxs[x0] = gofx.subs(x,x0)
+                    pointfixe_approxs[x0] = Abs(func1.subs(x,x0).evalf())
                     print(pointfixe_approxs[x0])
                     temp = gofx.subs(x,x0) # on trouve la valeur de x0 dans la fonction
-                    x0 = bissectrice.subs(x,temp) # on insert la valeur du y trouvé dans la fonction bissectrice
+                    x0 = Abs(bissectrice.subs(x,temp).evalf()) # on insert la valeur du y trouvé dans la fonction bissectrice
                 pointfixe_result = x0
                 print(pointfixe_result)
             else:

@@ -6,14 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="aa6a8d31-2144-4ba8-92e1-665780ade17d" name="Changes" comment="petites modifs secante et newton">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Devoir1_Entame.xlsm" beforeDir="false" afterPath="$PROJECT_DIR$/Devoir1_Entame.xlsm" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bissection_animation.gif" beforeDir="false" afterPath="$PROJECT_DIR$/bissection_animation.gif" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/muller_animation.gif" beforeDir="false" afterPath="$PROJECT_DIR$/muller_animation.gif" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/newton_animation.gif" beforeDir="false" afterPath="$PROJECT_DIR$/newton_animation.gif" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pointfixe_animation.gif" beforeDir="false" afterPath="$PROJECT_DIR$/pointfixe_animation.gif" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/quasi-newton_animation.gif" beforeDir="false" afterPath="$PROJECT_DIR$/quasi-newton_animation.gif" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/root_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/root_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/secante_animation.gif" beforeDir="false" afterPath="$PROJECT_DIR$/secante_animation.gif" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
