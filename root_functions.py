@@ -57,13 +57,20 @@ def add_animated_graph (approximations, inputs, func, name):
     values = list(approximations.values()) #x values of the function
     keys = list(approximations.keys()) #y values of the function
     fig, ax = plt.subplots() #initiate graph process
-    x = np.linspace(inputs['min'][0],inputs['max'][0],1000) #graph the function through 1000 points between max and min
+    x = np.linspace(float(min(keys)),float(max(keys)),1000) #graph the function through 1000 points between max and min
     y = [eval(func, globals(), {'x':i}) for i in x]
     plt.plot(x, y, label=f"f(x) = {func}", color="blue")
     colors = np.linspace(0, 1, len(approximations.keys()))
     scatter = plt.scatter(list(approximations.keys()),list(approximations.values()), c=colors, cmap="Greens",edgecolors='black', s=100, alpha=0.9)
     red_point = plt.scatter(keys[-1], values[-1], color='red', s=25, zorder=3, edgecolors="black")
     red_point.set_label("Dernière itération")
+    ax.text(
+        keys[-1],
+        (max(y)-min(y))*0.05+values[-1],
+        f"({keys[-1]:.3f}, {values[-1]:.3f})",
+        bbox=dict(facecolor="white", alpha=0.8),
+        ha="center",
+        va="bottom")
     def update(frame): #creates an iteration to generate the gif graph
         scatter.set_offsets(np.c_[keys[:frame + 1], values[:frame + 1]])
         scatter.set_array(colors[:frame + 1])
@@ -74,7 +81,7 @@ def add_animated_graph (approximations, inputs, func, name):
     ax.set_ylabel("Axe des Y")
     plt.legend()
     plt.colorbar(scatter)
-    anim.save(gif_path, writer='pillow', fps=10) # save the gif in the folder
+    anim.save(gif_path, writer='pillow', fps=3) # save the gif in the folder
 
 def merge_gifs_side_by_side(gif1_path, gif2_path, output_path):
     # Load both GIFs
@@ -348,78 +355,84 @@ def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
 
 ### Méthode de Muller ###
 def muller(inputs: dict, ws: xw.Sheet, min, max):
-    # Initialisation des variables nécessaires à l'algorithmme
-    max_time = inputs['tempslimite'][0]
-    t1_start = process_time() 
-    muller_approxs = {}
-    col_muller = inputs['muller'][2]
-    func = inputs['fonction'][0]
-    precision_required = inputs['precision'][0]
-    max_iterations = iterations  
 
-    # Fonction qui permet d'évaluer la fonction en x
-    def f(x):
-        context = {"x": x}
-        return eval(func, globals(), context)
+    try:
+        # Initialisation des variables nécessaires à l'algorithmme
+        max_time = inputs['tempslimite'][0]
+        t1_start = process_time()
+        muller_approxs = {}
+        col_muller = inputs['muller'][2]
+        func = inputs['fonction'][0]
+        precision_required = inputs['precision'][0]
+        max_iterations = iterations
 
-    # Initialisation du compteur d'itérations et du domaine d'exploration en x
-    precision_result = float('inf')
-    iteration = 0
-    x0 = inputs['min'][0]
-    x1 = inputs['max'][0]
-    x2 = ((x1-x0)/2)+0.1
+        # Fonction qui permet d'évaluer la fonction en x
+        def f(x):
+            context = {"x": x}
+            return eval(func, globals(), context)
 
-    # Boucle de l'algorithme
-    while iteration < max_iterations: # On arrête la boucle si on atteint le nombre maximal d'itérations
-        current_time = process_time()
-        if current_time - t1_start > max_time:
-            ws.range(f"C{col_muller}").value = "Le temps maximum est dépassé"
-            ws.range(f"D{col_muller}").value = current_time - t1_start
-            return
-        f0, f1, f2 = f(x0), f(x1), f(x2) # Calcul de la fonctions aux trois points donnés
-        muller_approxs[x0] = f0
-        muller_approxs[x1] = f1
-        muller_approxs[x2] = f2
+        # Initialisation du compteur d'itérations et du domaine d'exploration en x
+        precision_result = float('inf')
+        iteration = 0
+        x0 = inputs['min'][0]
+        x1 = inputs['max'][0]
+        x2 = ((x1-x0)/2)+0.1
 
-        # Calcul des coefficients d'interpolation
-        h1, h2 = x1 - x0, x2 - x1
-        d1, d2 = (f1 - f0) / h1, (f2 - f1) / h2
-        a = (d2 - d1) / (h2 + h1)
-        b = a * h2 + d2
-        c = f2
+        # Boucle de l'algorithme
+        while iteration < max_iterations: # On arrête la boucle si on atteint le nombre maximal d'itérations
+            current_time = process_time()
+            if current_time - t1_start > max_time:
+                ws.range(f"C{col_muller}").value = "Le temps maximum est dépassé"
+                ws.range(f"D{col_muller}").value = current_time - t1_start
+                return
+            f0, f1, f2 = f(x0), f(x1), f(x2) # Calcul de la fonctions aux trois points donnés
+            muller_approxs[x0] = f0
+            muller_approxs[x1] = f1
+            muller_approxs[x2] = f2
 
-        discriminant = sp.sqrt(b ** 2 - 4 * a * c) # Calcul du discriminant
-        denom1, denom2 = b + discriminant, b - discriminant
-        
-        # Permet de sélectionner la meilleure valeur de dénominateur
-        if abs(denom1) > abs(denom2):
-            x3 = x2 - (2 * c) / denom1
+            # Calcul des coefficients d'interpolation
+            h1, h2 = x1 - x0, x2 - x1
+            d1, d2 = (f1 - f0) / h1, (f2 - f1) / h2
+            a = (d2 - d1) / (h2 + h1)
+            b = a * h2 + d2
+            c = f2
+
+            discriminant = sp.sqrt(b ** 2 - 4 * a * c) # Calcul du discriminant
+            denom1, denom2 = b + discriminant, b - discriminant
+
+            # Permet de sélectionner la meilleure valeur de dénominateur
+            if abs(denom1) > abs(denom2):
+                x3 = x2 - (2 * c) / denom1
+            else:
+                x3 = x2 - (2 * c) / denom2
+
+            # On évalue la fonciton en x3 ce qui nous donne notre prochaine approximaiton
+            print(x3)
+            muller_approxs[x3] = float(f(x3))
+            print(f(x3))
+
+            # Test qui permet de sortir de la boucle si on atteint la précision escomptée
+            if abs(x3 - x2) < precision_required:
+                muller_result = x3         # Le résultat est celui de la dernière approximation
+                break
+
+            # On ajuste les points en fonctions des nouveaux que nous avons calculés
+            x0, x1, x2 = x1, x2, x3
+            iteration += 1              # On incrémente le nombre d'itérations
+
         else:
-            x3 = x2 - (2 * c) / denom2
+            muller_result = "No convergence after max iterations" # Si la fonction ne converge pas
 
-        # On évalue la fonciton en x3 ce qui nous donne notre prochaine approximaiton
-        muller_approxs[x3] = f(x3)
-
-        # Test qui permet de sortir de la boucle si on atteint la précision escomptée
-        if abs(x3 - x2) < precision_required: 
-            muller_result = x3         # Le résultat est celui de la dernière approximation
-            break
-
-        # On ajuste les points en fonctions des nouveaux que nous avons calculés
-        x0, x1, x2 = x1, x2, x3
-        iteration += 1              # On incrémente le nombre d'itérations
-
-    else:
-        muller_result = "No convergence after max iterations" # Si la fonction ne converge pas
+    except TypeError:
+        muller_result = "La méthode atteint des nombres complexes"
 
     # Insertion des résultats dans le chiffirer
     ws.range(f"C{col_muller}").value = muller_result
-    t1_stop = process_time() 
+    t1_stop = process_time()
     ws.range(f"D{col_muller}").value = t1_stop - t1_start
     populate_graph_data(inputs, "muller", muller_approxs, muller_result)
     if inputs.get('animationordinateur', [0])[0] == 1:
         add_animated_graph(muller_approxs, inputs, func, 'muller')
-    print("muller done")
 
 def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
     max_time = inputs['tempslimite'][0]
