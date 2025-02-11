@@ -120,7 +120,7 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
         bissection_approxs[x2] = x2_result
 
         ite = iterations
-        countr = 1
+        countr = 0
 
         if x1_result > x2_result:
             x1 = inputs['max'][0]
@@ -175,17 +175,15 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
     x2_result = eval(func, globals(), x2_context)
     approxs[x1] = x1_result
     approxs[x2] = x2_result
-    min = inputs['min'][0]
-    max = inputs['max'][0]
-    ite = iterations
-    countr = 1
+    ite = iterations    # nbr max d'itérations
+    countr = 0  # initialisation du compteur
 
-    if x1_result * x2_result > 0:
+    if x1_result * x2_result > 0:   # erreur si sécante ne croise pas axe de x
         secante_result = "Aucun zero sur cette section"
 
     precision_result=1
 
-    while abs(precision_result) > abs(precision_required):
+    while abs(precision_result) > abs(precision_required): # condition de boucle (résultat de f(x3)>0.0001) precision choisie.
         countr = countr + 1
         if countr > ite:
             break
@@ -194,16 +192,16 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
         if fx2 - fx1 ==0:
             secante_result = "Erreur : Division par Zero"
             break
-        x3 = x2-(fx2/((fx2-fx1)/(x2-x1)))
+        x3 = x2-(fx2/((fx2-fx1)/(x2-x1)))  # formule secante pour trouver point ou secante touche axe x
         x3_context = {"x": x3}
-        x3_result = eval(func, globals(), x3_context)
+        x3_result = eval(func, globals(), x3_context)   # valeur trouve pour fx3
         approxs[x3] = x3_result
         secante_list.append(x3)
-        precision_result = abs(x3_result)
-        x1, x2 = x2, x3
+        precision_result = abs(x3_result) #test pour savoir si on continue boucle ou pas
+        x1, x2 = x2, x3 # associe nouvelles valeurs a x1 et x2 pour continuer boucle
         secante_result = x3
 
-    if secante_result > max or secante_result < min:
+    if secante_result > x2 or secante_result < x1:
         secante_result = "La méthode diverge"
     if inputs['animationordinateur'][0] == 1:
         add_animated_graph(approxs, inputs, func, 'secante')
@@ -234,7 +232,7 @@ def newton(inputs: dict, ws: xw.Sheet, min, max):
     x = sp.Symbol("x")
 
     ite = iterations    # Nombre d'itérations maximal qu'on veut effectuer
-    countr = 1          # Compteur d'itérations
+    countr = 0          # Compteur d'itérations
 
     # Boucle qui effectue l'agorithme de Newton
     while precision > precision_required:
@@ -278,7 +276,7 @@ def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
 
     precision_result = float('inf')
     qnewton_list = []
-    max_iterations = 100
+    max_iterations = iterations
     iteration = 0
 
     #Verification de la presence d'une racine
@@ -387,7 +385,6 @@ def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
     precision_required = inputs['precision'][0]
 
     ite = iterations
-    countr = 1
 
     x = sp.Symbol("x")
     func2 = sp.sympify(func)
