@@ -13,6 +13,7 @@
 from csv import excel
 from math import *
 import sys
+from time import process_time, process_time_ns
 import matplotlib.axes
 import pandas as pd
 import numpy as np
@@ -103,6 +104,8 @@ def merge_gifs_side_by_side(gif1_path, gif2_path, output_path):
 
 
 def bissection(inputs: dict, ws: xw.Sheet, min, max):
+    max_time = inputs['tempslimite'][0]
+    t1_start = process_time() 
     try:
         bissection_approxs = {}
         col_bissection = inputs['bissection'][2]
@@ -133,6 +136,11 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
         else:
             precision_result = 1
             while precision_result > precision_required:
+                current_time = process_time()
+                if current_time - t1_start > max_time:
+                    ws.range(f"C{col_bissection}").value = "Le temps maximum est dépassé"
+                    ws.range(f"D{col_bissection}").value = current_time - t1_start
+                    return
                 countr = countr + 1
                 if countr > ite:
                     break
@@ -154,13 +162,18 @@ def bissection(inputs: dict, ws: xw.Sheet, min, max):
     except ZeroDivisionError:
         bissection_result = "Processus implique une division par 0"
 
+    t1_stop = process_time() 
     ws.range(f"C{col_bissection}").value = bissection_result
+    ws.range(f"D{col_bissection}").value = t1_stop - t1_start
+
     populate_graph_data(inputs, "bissection", bissection_approxs, bissection_result)
     if inputs['animationordinateur'][0] == 1:
         add_animated_graph(bissection_approxs, inputs, func,'bissection')
     print('Bissection done')
 
 def secante(inputs: dict, ws: xw.Sheet, min, max):
+    max_time = inputs['tempslimite'][0]
+    t1_start = process_time() 
     # values
     secante_list = []
     approxs = {}
@@ -186,6 +199,11 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
     precision_result=1
 
     while abs(precision_result) > abs(precision_required):
+        current_time = process_time()
+        if current_time - t1_start > max_time:
+            ws.range(f"C{col_secante}").value = "Le temps maximum est dépassé"
+            ws.range(f"D{col_secante}").value = current_time - t1_start
+            return
         countr = countr + 1
         if countr > ite:
             break
@@ -203,16 +221,20 @@ def secante(inputs: dict, ws: xw.Sheet, min, max):
         x1, x2 = x2, x3
         secante_result = x3
 
-    if secante_result > max or secante_result < min:
+    if not isinstance(secante_result, str) and (secante_result > max or secante_result < min):
         secante_result = "La méthode diverge"
     if inputs['animationordinateur'][0] == 1:
         add_animated_graph(approxs, inputs, func, 'secante')
     
     ws.range(f"C{col_secante}").value = secante_result
+    t1_stop = process_time() 
+    ws.range(f"D{col_secante}").value = t1_stop - t1_start
     populate_graph_data(inputs, "secante", approxs, secante_result)
     print('secante done')
 
 def newton(inputs: dict, ws: xw.Sheet, min, max):
+    max_time = inputs['tempslimite'][0]
+    t1_start = process_time() 
     approxs = {}
     col_newton = inputs['newton'][2]
     func = inputs['fonction'][0]
@@ -234,6 +256,11 @@ def newton(inputs: dict, ws: xw.Sheet, min, max):
     countr = 1
 
     while precision > precision_required:
+        current_time = process_time()
+        if current_time - t1_start > max_time:
+            ws.range(f"C{col_newton}").value = "Le temps maximum est dépassé"
+            ws.range(f"D{col_newton}").value = current_time - t1_start
+            return
         countr = countr + 1
         if countr > ite:
             break
@@ -249,13 +276,16 @@ def newton(inputs: dict, ws: xw.Sheet, min, max):
         newton_result = x2
     if newton_result > max or newton_result < min:
         newton_result = "La méthode diverge"
-
     ws.range(f"C{col_newton}").value = newton_result
+    t1_stop = process_time() 
+    ws.range(f"D{col_newton}").value = t1_stop - t1_start
     if inputs['animationordinateur'][0] == 1:
         add_animated_graph(approxs, inputs, func, 'newton')
     populate_graph_data(inputs, "newton", approxs, newton_result)
 
 def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
+    max_time = inputs['tempslimite'][0]
+    t1_start = process_time() 
     qnewton_approxs = {}
     col_qnewton = inputs['quasinewton'][2]
     func = inputs['fonction'][0]
@@ -277,6 +307,11 @@ def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
         qnewton_result = "Il n'y a pas de racine dans l'intervalle donné de cette fonction" #pas certain qu'on doit faire ça ?
 
     while precision_result > precision_required and iteration < max_iterations:
+        current_time = process_time()
+        if current_time - t1_start > max_time:
+            ws.range(f"C{col_qnewton}").value = "Le temps maximum est dépassé"
+            ws.range(f"D{col_qnewton}").value = current_time - t1_start
+            return
         fx1, fx2 = f(x1), f(x2)
 
         if fx2 - fx1 == 0:
@@ -292,6 +327,8 @@ def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
 
     qnewton_result = x2 if precision_result <= precision_required else "Aucune convergence"
 
+    t1_stop = process_time() 
+    ws.range(f"D{col_qnewton}").value = t1_stop - t1_start
     ws.range(f"C{col_qnewton}").value = qnewton_result
     if inputs['animationordinateur'][0] == 1:
         add_animated_graph(qnewton_approxs, inputs, func, 'quasi-newton')
@@ -300,6 +337,8 @@ def quasi_newton(inputs: dict, ws: xw.Sheet, min, max):
 
 
 def muller(inputs: dict, ws: xw.Sheet, min, max):
+    max_time = inputs['tempslimite'][0]
+    t1_start = process_time() 
     muller_approxs = {}
     col_muller = inputs['muller'][2]
     func = inputs['fonction'][0]
@@ -317,6 +356,11 @@ def muller(inputs: dict, ws: xw.Sheet, min, max):
     x2 = ((x1-x0)/2)+0.1
 
     while iteration < max_iterations:
+        current_time = process_time()
+        if current_time - t1_start > max_time:
+            ws.range(f"C{col_muller}").value = "Le temps maximum est dépassé"
+            ws.range(f"D{col_muller}").value = current_time - t1_start
+            return
         f0, f1, f2 = f(x0), f(x1), f(x2)
         muller_approxs[x0] = f0
         muller_approxs[x1] = f1
@@ -352,13 +396,16 @@ def muller(inputs: dict, ws: xw.Sheet, min, max):
         muller_result = "No convergence after max iterations"
 
     ws.range(f"C{col_muller}").value = muller_result
+    t1_stop = process_time() 
+    ws.range(f"D{col_muller}").value = t1_stop - t1_start
     populate_graph_data(inputs, "muller", muller_approxs, muller_result)
     if inputs.get('animationordinateur', [0])[0] == 1:
         add_animated_graph(muller_approxs, inputs, func, 'muller')
     print("muller done")
 
 def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
-
+    max_time = inputs['tempslimite'][0]
+    t1_start = process_time() 
     pointfixe_approxs = {}
     col_pointfixe = inputs['pointfixe'][2]
     func = inputs['fonction'][0]
@@ -381,6 +428,11 @@ def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
             x0 = x2
         bissectrice = x
         for i in range(1,int(ite)):
+            current_time = process_time()
+            if current_time - t1_start > max_time:
+                ws.range(f"C{col_pointfixe}").value = "Le temps maximum est dépassé"
+                ws.range(f"D{col_pointfixe}").value = current_time - t1_start
+                return
             pointfixe_approxs[x0] = func2.subs(x,x0)
             temp = func2.subs(x,x0)
             x0 = bissectrice.subs(x,temp)
@@ -392,6 +444,8 @@ def pointfixe(inputs: dict, ws: xw.Sheet, min, max):
     else:
         pointfixe_result = "les valeurs absolues des dérivés au point max et min sont supérieurs ou égales à 1"
         ws.range(f"C{col_pointfixe}").value = pointfixe_result
+    t1_stop = process_time() 
+    ws.range(f"D{col_pointfixe}").value = t1_stop - t1_start
     print("pointfixe done")
 
 def find_root():
@@ -477,7 +531,6 @@ def handle_inputs(file_name: str):
     if nb_of_plot > 0:
         fig, axes = initiate_plot(nb_of_plot)
         if input_data['graphiqueracine'][0] == 1:
-            print(x_min, '###', x_max)
             add_root_plot(axes, nb_of_plot, input_data['fonction'], x_min[0], x_max[0])
         if input_data['graphiqueapproximations'][0] == 1:
             add_approx_plot(axes, nb_of_plot)
