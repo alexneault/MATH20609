@@ -524,7 +524,31 @@ def populate_graph_data(inputs: str, funct: str, approxs: dict, res):
         root_plot_data[funct] = res
     if inputs['graphiqueapproximations'][0] == 1:
         approxs_plot_data[funct] = approxs
-        
+
+
+def add_approx_sheet(ws: xw.Sheet):
+    ws.range('A1').expand().clear()
+    print(approxs_plot_data)
+    row = 1
+    col = 1
+    cell = 'B'
+    i = 0
+    for key, values in approxs_plot_data.items():
+        ws.range(f"{chr(ord(cell) + i)}{col}").value = key
+        z = 1
+        ws.range(f"{chr(ord(cell) + i)}{col + z}").value = 'x'
+        ws.range(f"{chr(ord(cell) + i + 1)}{col + z}").value = 'y'
+        z = z+1
+        iter = 1
+        for x, y in values.items():
+            ws.range(f"A{col+z}").value = f"Iteration {iter}"
+            ws.range(f"{chr(ord(cell) + i)}{col + z}").value = x
+            ws.range(f"{chr(ord(cell) + i + 1)}{col + z}").value = y
+            z = z + 1
+            iter = iter+1
+        i = i + 3
+
+
 
 def handle_inputs(file_name: str):
     output = "Output"
@@ -543,6 +567,14 @@ def handle_inputs(file_name: str):
         ws = wb.sheets.add(name=output, after=inputs)
     except ValueError:
         ws = wb.sheets[output]
+
+    try:
+        wb.sheets["Approximations"].delete()
+    except Exception:
+        print("Approximations sheet doesn't exist")
+
+    ws_approx = wb.sheets.add(name="Approximations", after=output)
+
     
     for i, (nom_fonction, value) in enumerate(functions_filtered, start=2):  # Commencer à la ligne 1
         ws.range(f"A{i}").value = nom_fonction
@@ -568,8 +600,6 @@ def handle_inputs(file_name: str):
 
     #add the animated graph je vais creer une loop pour le faire pour chacun des graphs plus tard.
     if input_data['animationordinateur'][0] == 1:
-
-
         gif_list = []
         y=8
         if input_data['bissection'][0] == 1: gif_list.append(f'bissection_animation')
@@ -588,8 +618,8 @@ def handle_inputs(file_name: str):
             except:
                 print(f"{i} did not work")
 
-
-
+    ws_approx.range('A1').expand().clear()
+    add_approx_sheet(ws_approx)
     print(f"Les données ont été ajoutées à l'onglet '{output}' du fichier '{file_name}'.")
 
 
