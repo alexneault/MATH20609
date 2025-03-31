@@ -6,9 +6,18 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import Entry, Label
+from matplotlib.widgets import Slider
 
-
+root = tk.Tk()
+#anim: FuncAnimation = None
+inputs_entries: list[tuple[Entry, Label]] = []
+inputs = {"a11" : 1, "a12": -3, "b1": 0, "a21": 0.25, "a22": 3, "b2": 0, "y11": 1, "y22": 2, "t": 1, "h_min": -1, "h_max": 1, "laps": 0.01, "fps": 40, "intervals": 1}
 # input pour le systeme d'équation (à mettre à jour avec le ??Excel??)
+
+"""
 a11 = 1
 a12 = -3
 b1 = 0
@@ -22,6 +31,7 @@ h_min = -1 #permet de changer l'horizon min
 h_max = 1 #pemet de changer l'horizon max
 laps = 0.01 #permet de changer l'espace entre les estimations des graphs
 fps = 40 #permet de changer la vitesse des graphs
+"""
 
 
 #créer les system d'équation
@@ -140,6 +150,17 @@ def build_graph(y1t, y2t, h_min, h_max, laps):
     plt.legend()
     plt.show()
 
+
+def update_interval(val, slider, fig, update_combined, t_vals):
+    new_interval = slider.val  # Get the current slider value
+    global anim
+    anim.event_source.stop()
+    inputs["intervals"] = new_interval
+    anim = FuncAnimation(fig, update_combined, frames=len(t_vals), interval=inputs["intervals"], blit=True)
+    anim.event_source.start()
+    fig.canvas.draw()
+
+
 def build_animated_graph(y1t, y2t, h_min, h_max, laps, fps, name_prefix="graph"):
     t = sp.Symbol('t')
     t_vals = []
@@ -170,19 +191,20 @@ def build_animated_graph(y1t, y2t, h_min, h_max, laps, fps, name_prefix="graph")
             line.set_data(x_vals[:frame + 1], y_vals[:frame + 1])
             return line,
 
-        anim = FuncAnimation(fig, update, frames=len(x_vals), interval=1, blit=True)  # reduced frames
+        anim = FuncAnimation(fig, update, frames=len(x_vals), interval=inputs["intervals"], blit=True)  # reduced frames
         gif_path = os.path.join(script_dir, f"{name_prefix}_{filename}.gif")
         anim.save(gif_path, writer='pillow', fps=fps)  # increased fps
         plt.close()
+        print("animate saved")
 
     # Animate Plot 1: f1(t)
-    animate_and_save(t_vals, f1_vals, "t", "f1(t)", "Graph of f1(t)", "f1")
+    #animate_and_save(t_vals, f1_vals, "t", "f1(t)", "Graph of f1(t)", "f1")
 
     # Animate Plot 2: f2(t)
-    animate_and_save(t_vals, f2_vals, "t", "f2(t)", "Graph of f2(t)", "f2")
+    #animate_and_save(t_vals, f2_vals, "t", "f2(t)", "Graph of f2(t)", "f2")
 
     # Animate Plot 3: f1(t) vs f2(t)
-    animate_and_save(f1_vals, f2_vals, "f1(t)", "f2(t)", "Graph of f1(t) vs f2(t)", "f1_vs_f2")
+    #animate_and_save(f1_vals, f2_vals, "f1(t)", "f2(t)", "Graph of f1(t) vs f2(t)", "f1_vs_f2")
 
     # Animate Plot 4: f1(t) and f2(t) on same graph
     fig, ax = plt.subplots()
@@ -201,10 +223,18 @@ def build_animated_graph(y1t, y2t, h_min, h_max, laps, fps, name_prefix="graph")
         line2.set_data(t_vals[:frame + 1], f2_vals[:frame + 1])
         return line1, line2
 
-    anim = FuncAnimation(fig, update_combined, frames=len(t_vals), interval=1, blit=True)  # reduced frames
+    global anim
+    anim = FuncAnimation(fig, update_combined, frames=len(t_vals), interval=inputs["intervals"], blit=True)  # reduced frames
     gif_path = os.path.join(script_dir, f"{name_prefix}_combined.gif")
     anim.save(gif_path, writer='pillow', fps=fps)  # increased fps
-    plt.close()
+    print("combined saved")
+
+    # add interval slider
+    ax_slider = plt.axes([0.25, 0.01, 0.65, 0.03], facecolor='lightgoldenrodyellow')
+    slider = Slider(ax_slider, 'Interval', 1, 100, valinit=inputs["intervals"], valstep=1)
+    slider.on_changed(lambda val: update_interval(val, slider, fig, update_combined, t_vals))
+    plt.show()
+    #plt.close()
 
 def run_model(a11,a12,b1,a21,a22,b2,y11,y22,t, h_min, h_max, laps, fps):
     y1_prime , y2_prime = sys_equation(a11,a12,b1,a21,a22,b2)
@@ -214,6 +244,49 @@ def run_model(a11,a12,b1,a21,a22,b2,y11,y22,t, h_min, h_max, laps, fps):
     c1, c2, y1c, y2c, y1t, y2t, y1ct, y2ct = solve_constant(y1t,y2t,y11,y22,t)
     build_animated_graph(y1t, y2t, h_min, h_max, laps, fps)
 
+def generate_model():
+    try:
+        for (entry, label) in inputs_entries:
+            name = label['text']
+            value = float(entry.get())
+            inputs[name] = value
+
+        run_model(
+            inputs["a11"], 
+            inputs["a12"], 
+            inputs["b1"], 
+            inputs["a21"], 
+            inputs["a22"], 
+            inputs["b2"], 
+            inputs["y11"], 
+            inputs["y22"], 
+            inputs["t"], 
+            inputs["h_min"], 
+            inputs["h_max"], 
+            inputs["laps"], 
+            inputs["fps"]
+            )
+    except ValueError:
+        messagebox.showerror("Error", "Please enter valid integers in all fields.")
+
+def run_tkinter():
+    root.title("Mobile generation")
+    root.geometry("300x700")
+
+    for key in inputs.keys():
+        label = tk.Label(root, text=key)
+        label.pack()
+        entry = tk.Entry(root)
+        entry.insert(0, str(inputs[key]))
+        entry.pack(pady=2)
+        inputs_entries.append((entry, label))
+
+    submit_btn = tk.Button(root, text="Create f1 and f2 combined graph", command=generate_model)
+    submit_btn.pack(pady=10)
+
+    root.mainloop()
+
 if __name__ == "__main__":
+    run_tkinter()
     # Execution
-    run_model(a11, a12, b1, a21, a22, b2, y11, y22, t, h_min, h_max, laps, fps)
+    #run_model(a11, a12, b1, a21, a22, b2, y11, y22, t, h_min, h_max, laps, fps)
