@@ -76,7 +76,7 @@ def add_animated_graph (approximations, inputs, func, name):
         scatter.set_offsets(np.c_[keys[:frame + 1], values[:frame + 1]])
         scatter.set_array(colors[:frame + 1])
         return scatter, red_point
-    anim = FuncAnimation(fig, update, frames=len(keys) + 10, interval=5000000, blit=True)  # generate the gif
+    anim = FuncAnimation(fig, update, frames=len(keys) + 100, interval=5000000, blit=True)  # generate the gif
     ax.set_title(f"Itérations de {name}")
     ax.set_xlabel("Axe des X")
     ax.set_ylabel("Axe des Y")

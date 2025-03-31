@@ -5,9 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="aa6a8d31-2144-4ba8-92e1-665780ade17d" name="Changes" comment="petites modifs secante et newton">
-      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tp1/bissection_animation.gif" beforeDir="false" afterPath="$PROJECT_DIR$/tp1/bissection_animation.gif" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tp1/root_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tp1/root_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tp2/mobile.py" beforeDir="false" afterPath="$PROJECT_DIR$/tp2/mobile.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -73,7 +72,7 @@
       <command value="pip install -r requirements.txt -&gt; pour les dependencies" />
     </option>
   </component>
-  <component name="RunManager" selected="Python.mobile">
+  <component name="RunManager">
     <configuration name="mobile" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="MATH20609" />
       <option name="ENV_FILES" value="" />
