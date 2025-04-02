@@ -41,6 +41,7 @@ def h1_h2_primeprime(a11, a12, a21, a22):
     h1pp = (a11 + a22) * h1p + (a12 * a21 - a11 * a22) * h1
     a1 = a11 + a22
     a2 = a12 * a21 - a11 * a22
+    #Je crois qu'il faut faire le if juste ici pour les trois cas de figure (selon le delta) 
     eq_h1 = sp.Eq(h1.diff(t, 2), (a1) * h1.diff(t) + (a2) * h1)
     sol_h1 = sp.dsolve(eq_h1).rhs
     h1 = sol_h1
