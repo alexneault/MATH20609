@@ -7,7 +7,7 @@ from tkinter import Entry, Label
 root = tk.Tk()
 resource_entry = tk.Entry(root, width=10)
 resource_entry.insert(0, "50")
-
+hour_entries = []
 max_benefit_label = tk.Label(root, text="Maximum Benefit: ", font=('Arial', 10))
 allocation_plan_label = tk.Label(root, text="Resource Allocation Plan: ", font=('Arial', 10))
 
@@ -16,14 +16,6 @@ entry_widgets = []
 grades = {"A" :5, "B":4, "C":3, "D":1}
 
 grades_val_to_grade = { 5 :"A", 4:"B", 3:"C", 1:"D"}
-
-
-resources_matrix = [
-    [1, 2, 3, 4],
-    [1, 2, 3, 4],
-    [1, 2, 3, 4],
-    [1, 2, 3, 4],
-]
 
 def copy_with_zeros(matrix):
     return [[0] * len(matrix[0]) for _ in range(len(matrix))]
@@ -99,25 +91,30 @@ def on_submit():
     #print("Resource value:", resource_value)
 
     updated_benefit_matrix = generate_benefice_matrix(updated_data)
-    #print(updated_benefit_matrix)
-    max_benefit, allocation_plan = resource_allocation_dp(resource_value // 5, updated_benefit_matrix, resources_matrix)
-    #print("Maximum Benefit:", max_benefit)
-    #print("Resource Allocation Plan:", allocation_plan)
+    dynamic_resources_matrix = get_resource_matrix_from_ui()
+    max_benefit, allocation_plan = resource_allocation_dp(resource_value, updated_benefit_matrix, dynamic_resources_matrix)
     max_benefit_label.config(text=f"Maximum Benefit: {max_benefit}")
     allocation_plan_label.config(text=f"Resource Allocation Plan: {allocation_plan_pretty(allocation_plan, updated_benefit_matrix)}")
 
 def allocation_plan_pretty(plan: list[int], update_benefit_matrix):
     print(plan)
-    print(update_benefit_matrix)
-    print("plan[0] -1: ", plan[0] -1)
-    print(grades_val_to_grade[update_benefit_matrix[0][plan[0] -1]])
-    res = "\nComptabilité: " + (grades_val_to_grade[update_benefit_matrix[0][plan[0] -1]] if plan[0] > 0 else "E")
-    res += "\nFinance: " + (grades_val_to_grade[update_benefit_matrix[1][plan[1]-1]] if plan[1] > 0 else "E")
-    res += "\nScience de la décision: " + (grades_val_to_grade[update_benefit_matrix[2][plan[2]-1]] if plan[2] > 0 else "E")
-    res += "\nGestion: " + (grades_val_to_grade[update_benefit_matrix[3][plan[3]-1]] if plan[3] > 0 else "E")
+    resource_matrix = get_resource_matrix_from_ui()
+    course_names = ["Comptabilité", "Finance", "Science de la décision", "Gestion"]
+    
+    res = ""
+    for i, hours in enumerate(plan):
+        try:
+            index_in_row = resource_matrix[i].index(hours)
+            grade_val = update_benefit_matrix[i][index_in_row]
+            grade = grades_val_to_grade[grade_val]
+        except ValueError:
+            grade = "E"  # No valid allocation
+        res += f"\n{course_names[i]}: {grade}"
+    
     return res
 
-
+def get_resource_matrix_from_ui():
+    return [list(map(int, [entry.get() for entry in hour_entries])) for _ in range(4)]
     
 
 def run_tkinter():
@@ -127,7 +124,7 @@ def run_tkinter():
         inputs["science_decision"],
         inputs["gestion"], # Cours 1
     ]
-    root.title("Mobile generation")
+    root.title("Allocation generation")
     root.geometry("1800x900")  # Increased window size
     #input_frame = tk.Frame(root)
     #input_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10, anchor='nw') # Inputs on the left
@@ -145,28 +142,42 @@ def run_tkinter():
 
         # Display key
         label = tk.Label(root, text=key, borderwidth=1, relief="solid", padx=5, pady=5)
-        label.grid(row=row, column=0, sticky="nsew")
+        label.grid(row=row+1, column=0, sticky="nsew")
 
         # Display editable entries
         for col, value in enumerate(row_values, start=1):
             entry = tk.Entry(root, width=10, validate="key", validatecommand=vcmd)
             entry.insert(0, str(value))
-            entry.grid(row=row, column=col, padx=1, pady=1)
+            entry.grid(row=row+1, column=col, padx=1, pady=1)
             row_entries.append(entry)
 
         entry_widgets.append(row_entries)
         submit_btn = tk.Button(root, text="Calculer l'allocation", command=on_submit, font=('Arial', 10, 'bold'), padx=10, pady=5)
-        submit_btn.grid(row=len(inputs.keys()) + 1, column=2, columnspan=2, padx=10, pady=10)
+        submit_btn.grid(row=len(inputs.keys()) + 2, column=2, columnspan=2, padx=10, pady=10)
         # Resource label + input
 
     resource_label = tk.Label(root, text="Heure d'étude total:", font=('Arial', 10))
-    resource_label.grid(row=len(inputs.keys()) + 1, column=0, padx=5, pady=10, sticky='e')
+    resource_label.grid(row=len(inputs.keys()) + 2, column=0, padx=5, pady=10, sticky='e')
 
-    resource_entry.grid(row=len(inputs.keys()) + 1, column=1, padx=5, pady=10, sticky='w')
+    resource_entry.grid(row=len(inputs.keys()) + 2, column=1, padx=5, pady=10, sticky='w')
         # You can later access `entry_widgets[row][col]` to get data
 
-    max_benefit_label.grid(row=len(inputs.keys()) + 2, column=0, columnspan=5, sticky='w', padx=10, pady=5)
-    allocation_plan_label.grid(row=len(inputs.keys()) + 3, column=0, columnspan=5, sticky='w', padx=10, pady=5)
+    max_benefit_label.grid(row=len(inputs.keys()) + 3, column=0, columnspan=5, sticky='w', padx=10, pady=5)
+    allocation_plan_label.grid(row=len(inputs.keys()) + 4, column=0, columnspan=5, sticky='w', padx=10, pady=5)
+    Label(root, text="Heures", font=('Arial', 10, 'bold')).grid(row=0, column=0, padx=5, pady=5)
+
+    default_hours = [5, 10, 15, 20]
+    for col, hour in enumerate(default_hours, start=1):
+        entry = tk.Entry(root, width=10)
+        entry.insert(0, str(hour))
+        entry.grid(row=0, column=col, padx=1, pady=1)
+        hour_entries.append(entry)
+
+    # Actual header below editable hour row
+    header_labels = ["Cours"]
+    for col, text in enumerate(header_labels):
+        label = tk.Label(root, text=text, font=('Arial', 10, 'bold'), borderwidth=1, relief="solid", padx=5, pady=5)
+        label.grid(row=1, column=col, sticky="nsew")
 
     root.mainloop()
 
