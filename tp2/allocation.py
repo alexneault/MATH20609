@@ -8,8 +8,8 @@ root = tk.Tk()
 resource_entry = tk.Entry(root, width=10)
 resource_entry.insert(0, "50")
 hour_entries = []
-max_benefit_label = tk.Label(root, text="Maximum Benefit: ", font=('Arial', 10))
-allocation_plan_label = tk.Label(root, text="Resource Allocation Plan: ", font=('Arial', 10))
+max_benefit_label = tk.Label(root, text="Bénéfice Maximum: ", font=('Arial', 10))
+allocation_plan_label = tk.Label(root, text="Plan d'allocation de ressources: ", font=('Arial', 10))
 
 inputs = {"comptabilite": ["D","C","B","A"], "finance": ["C","B","A","A"], "science_decision": ["D","C","B","A"], "gestion": ["B","B","A","A"]}
 entry_widgets = []
@@ -137,7 +137,7 @@ def run_tkinter():
         inputs["science_decision"],
         inputs["gestion"], # Cours 1
     ]
-    root.title("Allocation generation")
+    root.title("Génération d'allocation")
     root.geometry("1800x900")  # Increased window size
     #input_frame = tk.Frame(root)
     #input_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10, anchor='nw') # Inputs on the left
@@ -169,7 +169,7 @@ def run_tkinter():
         submit_btn.grid(row=len(inputs.keys()) + 2, column=2, columnspan=2, padx=10, pady=10)
         # Resource label + input
 
-    resource_label = tk.Label(root, text="Heure d'étude total:", font=('Arial', 10))
+    resource_label = tk.Label(root, text="Heures d'études total:", font=('Arial', 10))
     resource_label.grid(row=len(inputs.keys()) + 2, column=0, padx=5, pady=10, sticky='e')
 
     resource_entry.grid(row=len(inputs.keys()) + 2, column=1, padx=5, pady=10, sticky='w')
