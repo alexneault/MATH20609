@@ -17,6 +17,8 @@ grades = {"A" :5, "B":4, "C":3, "D":1}
 
 grades_val_to_grade = { 5 :"A", 4:"B", 3:"C", 1:"D"}
 
+grade_weight_entries = {}
+
 def copy_with_zeros(matrix):
     return [[0] * len(matrix[0]) for _ in range(len(matrix))]
 
@@ -84,6 +86,17 @@ def on_submit():
                 val = entry.get()  # fallback to string if not a number
             updated_row.append(val.upper())
         updated_data[key] = updated_row
+
+    for letter, entry in grade_weight_entries.items():
+        try:
+            grades[letter] = int(entry.get())
+        except ValueError:
+            grades[letter] = 0  # Or some default/fallback
+
+        # Update reverse lookup
+        grades_val_to_grade.clear()
+        grades_val_to_grade.update({v: k for k, v in grades.items()})
+    
 
     #print("Updated data:")
     #print(updated_data)
@@ -178,6 +191,22 @@ def run_tkinter():
     for col, text in enumerate(header_labels):
         label = tk.Label(root, text=text, font=('Arial', 10, 'bold'), borderwidth=1, relief="solid", padx=5, pady=5)
         label.grid(row=1, column=col, sticky="nsew")
+
+    grade_label = tk.Label(root, text="Valeur des notes:", font=('Arial', 10, 'bold'))
+    grade_label.grid(row=0, column=5, sticky='w', padx=10)
+    grade_letters = ['A', 'B', 'C', 'D']
+    default_values = [5, 4, 3, 1]
+
+    for i, letter in enumerate(grade_letters):
+        label = tk.Label(root, text=f"{letter}:", font=('Arial', 10))
+        label.grid(row=i + 1, column=5, sticky='e', padx=2)
+
+        entry = tk.Entry(root, width=5)
+        entry.insert(0, str(default_values[i]))
+        entry.grid(row=i + 1, column=6, sticky='w', padx=2)
+
+        grade_weight_entries[letter] = entry
+
 
     root.mainloop()
 
