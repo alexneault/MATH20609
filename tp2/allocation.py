@@ -8,8 +8,12 @@ root = tk.Tk()
 resource_entry = tk.Entry(root, width=10)
 resource_entry.insert(0, "50")
 hour_entries = []
-max_benefit_label = tk.Label(root, text="Bénéfice Maximum: ", font=('Arial', 10))
-allocation_plan_label = tk.Label(root, text="Plan d'allocation de ressources: ", font=('Arial', 10))
+max_benefit_label = tk.Label(root, text="Bénéfice Maximum Optimal: ", font=('Arial', 10))
+allocation_plan_label = tk.Label(root, text="Plan d'allocation de ressources optimal: ", font=('Arial', 10))
+
+max_benefit_label_naive = tk.Label(root, text="Bénéfice Maximum naïf: ", font=('Arial', 10))
+allocation_plan_label_naive = tk.Label(root, text="Plan d'allocation de ressources naïf: ", font=('Arial', 10))
+
 
 inputs = {"comptabilite": ["D","C","B","A"], "finance": ["C","B","A","A"], "science_decision": ["D","C","B","A"], "gestion": ["B","B","A","A"]}
 entry_widgets = []
@@ -61,6 +65,25 @@ def resource_allocation_dp(resources: int, benefit_matrix: list[list[int]], reso
 
     return dp[tasks - 1][resources], alloc_plan
 
+def naive_allocation(resources: int, benefit_matrix: list[list[int]], resources_matrix: list[list[int]]):
+    allocation = []
+    tasks = len(benefit_matrix)
+    remaining_resources = resources
+    max_resources = 0
+    for i in range(0, tasks):
+        best_alloc = 0
+        best_alloc_idx = 0
+        for r in range(0, len(resources_matrix[i])):
+            if resources_matrix[i][r] <= remaining_resources:
+                best_alloc = resources_matrix[i][r]
+                best_alloc_idx = r
+
+        remaining_resources = remaining_resources - best_alloc
+        allocation.append(best_alloc)
+        if (best_alloc_idx > 0):
+            max_resources+= benefit_matrix[i][best_alloc_idx]
+
+    return max_resources, allocation
 
 # Validation function
 def validate_char(char):
@@ -71,8 +94,6 @@ def generate_benefice_matrix(data: dict):
         matrix.append(list(map(grades_to_value, val)))
 
     return matrix
-
-
 
 # Function to handle button click
 def on_submit():
@@ -99,18 +120,22 @@ def on_submit():
     
 
     #print("Updated data:")
-    #print(updated_data)
     resource_value = int(resource_entry.get())
     #print("Resource value:", resource_value)
 
     updated_benefit_matrix = generate_benefice_matrix(updated_data)
     dynamic_resources_matrix = get_resource_matrix_from_ui()
     max_benefit, allocation_plan = resource_allocation_dp(resource_value, updated_benefit_matrix, dynamic_resources_matrix)
-    max_benefit_label.config(text=f"Maximum Benefit: {max_benefit}")
-    allocation_plan_label.config(text=f"Resource Allocation Plan: {allocation_plan_pretty(allocation_plan, updated_benefit_matrix)}")
+    max_benefit_label.config(text=f"Bénéfice Maximum Optimal: {max_benefit}")
+    allocation_plan_label.config(text=f"Plan d'allocation de ressources optimal: {allocation_plan_pretty(allocation_plan, updated_benefit_matrix)}")
+
+    naive_max_resources, naive_allocation_plan = naive_allocation(resource_value, updated_benefit_matrix, dynamic_resources_matrix)
+    max_benefit_label_naive.config(text=f"Bénéfice Maximum Naïf: {naive_max_resources}")
+    allocation_plan_label_naive.config(text=f"Plan d'allocation de ressources naïf: {allocation_plan_pretty(naive_allocation_plan, updated_benefit_matrix)}")
+
+
 
 def allocation_plan_pretty(plan: list[int], update_benefit_matrix):
-    print(plan)
     resource_matrix = get_resource_matrix_from_ui()
     course_names = ["Comptabilité", "Finance", "Science de la décision", "Gestion"]
     
@@ -177,6 +202,11 @@ def run_tkinter():
 
     max_benefit_label.grid(row=len(inputs.keys()) + 3, column=0, columnspan=5, sticky='w', padx=10, pady=5)
     allocation_plan_label.grid(row=len(inputs.keys()) + 4, column=0, columnspan=5, sticky='w', padx=10, pady=5)
+    
+    max_benefit_label_naive.grid(row=len(inputs.keys()) + 3, column=3, columnspan=5, sticky='w', padx=10, pady=5)
+    allocation_plan_label_naive.grid(row=len(inputs.keys()) + 4, column=3, columnspan=5, sticky='w', padx=10, pady=5)
+    
+    
     Label(root, text="Heures", font=('Arial', 10, 'bold')).grid(row=0, column=0, padx=5, pady=5)
 
     default_hours = [5, 10, 15, 20]
