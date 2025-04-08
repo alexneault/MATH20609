@@ -263,7 +263,7 @@ def generate_model2(canvas_widget_param):
                 except ValueError:
                     messagebox.showerror("Error", f"Invalid input for '{name}'. Please enter a number for '{name}'.")
                     return
-        run_model_for_graph2(inputs["a11"], inputs["a12"], inputs["b1"], inputs["a21"], inputs["a22"], inputs["b2"], inputs["y11"], inputs["y22"], inputs["t"], inputs["h_min"], inputs["h_max"], inputs["laps"], inputs["fps"], canvas_widget)
+        run_model_for_graph2(inputs["a11"], inputs["a12"], inputs["b1"], inputs["a21"], inputs["a22"], inputs["b2"], inputs["y1,t"], inputs["y2,t"], inputs["t"], inputs["h_min"], inputs["h_max"], inputs["laps"], inputs["fps"], canvas_widget)
     except ValueError:
         messagebox.showerror("Error", "Please enter valid numbers in all fields.")
 

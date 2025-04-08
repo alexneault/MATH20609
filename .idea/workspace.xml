@@ -5,8 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="aa6a8d31-2144-4ba8-92e1-665780ade17d" name="Changes" comment="petites modifs secante et newton">
-      <change afterPath="$PROJECT_DIR$/tp2/graph_functions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tp2/math_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tp2/mobile.py" beforeDir="false" afterPath="$PROJECT_DIR$/tp2/mobile.py" afterDir="false" />
     </list>
@@ -50,6 +48,7 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;Python.allocation.executor&quot;: &quot;Run&quot;,
     &quot;Python.mobile.executor&quot;: &quot;Run&quot;,
     &quot;Python.python .\\root_functions.py .\\Devoir1_Entame.xlsm.executor&quot;: &quot;Run&quot;,
     &quot;Python.python .\\root_functions.py .\\Devoir1_Entame.xlsx.executor&quot;: &quot;Run&quot;,
@@ -57,7 +56,7 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Gabri/Desktop/Python environment 1/BNI/Nouveau dossier&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Gabri/Documents/MATH20609&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -73,7 +72,7 @@
       <command value="pip install -r requirements.txt -&gt; pour les dependencies" />
     </option>
   </component>
-  <component name="RunManager" selected="Python.mobile">
+  <component name="RunManager">
     <configuration name="mobile" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="MATH20609" />
       <option name="ENV_FILES" value="" />
